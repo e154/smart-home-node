@@ -1,0 +1,19 @@
+language: go
+
+go:
+  - 1.7.x
+
+env:
+  global:
+    - UNAME="$(uname | tr '[:upper:]' '[:lower:]')"
+
+before_install:
+  - go get github.com/FiloSottile/gvt
+  - go env && pwd
+
+script:
+  - ./make --init
+  - ./make --build
+
+notifications:
+  email: false

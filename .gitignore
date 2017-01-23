@@ -1,0 +1,6 @@
+node.conf
+src
+vendor/*
+!vendor/manifest
+.idea
+/smart-home-node
