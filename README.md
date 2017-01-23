@@ -1,6 +1,8 @@
 Smart home node
 ---------------
 
+[![Build Status](https://travis-ci.org/e154/smart-home-node.svg?branch=master)](https://travis-ci.org/e154/smart-home-node)
+
 #####Instalation
 
 access to serial port
