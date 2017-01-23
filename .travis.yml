@@ -8,12 +8,10 @@ env:
     - secure: BfIk8TlLm4ulEYBh2d0/pVNhhINgAhkZsd8AbaYqwgZ7b7n8t97dpTsfePKUuoveFup3qSuWnpGpKUd6am1K5VQOIAqrSti5YkauE+RI+ebPVu3CfkawQ0RLmNx+VAp+mbWoTIPnof6o0qCiKMhEV2EBssAWp813G1KmX6uV+9g2o7uKGslvDmMTb5scoKZ9YyZY93bXxaAWp7AtPYuCtpztM3P6X+Ry1J7NEkVJRh1LpYssOFhrkNoUK0BiGMRtoqtOLDdNxSDrW8SS+UpRTXORsUZLBEPcNspqrsQMBUDVp64w/gOupJcS3kiI2TtUfnGMM+F5UeNTnUYTIRWrx0UslyepHLaVUBkw0aoLxaeSnqpI3swvcuT6QY0uagvQSSjWKfvCOlKnsezFKLOMnDoKR+Yicuv0yR8pDiqIfRWwfOD5DFsWxPgOIpv+OlRDDVuG/+Ip0EPi8lYCwqrfwHB0pNXLPynUEIkDkQBSeWrrlH+f/+HtIEhnDOugyXUKG3qwdSesXJ0OEzq3NmiHjsQfRb3whGgInfUwG5G1+kv1/Gv47VW86iC2SMW28UDYP+j1Y4yzbko7Wbf4WZEb/P0sjEU+2qgXxpof+P7rSpL+935vmyoUJdzy+2arxFUpYBllDS2uxVeSrN72P6480xf2OIPhWXIL8xxPEaeHIMU=
 
 before_install:
+  - go get github.com/FiloSottile/gvt
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/mattn/goveralls
   - go env && pwd
-
-install:
-  - go get github.com/FiloSottile/gvt
 
 script:
   - ./make --init
