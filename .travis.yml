@@ -3,7 +3,7 @@ language: go
 go:
   - 1.7.x
 
-before_install:
+install:
   - go get github.com/FiloSottile/gvt
   - go env && pwd
 
