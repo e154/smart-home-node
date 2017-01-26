@@ -6,14 +6,14 @@ set -o errexit
 # base variablesqwe
 #
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}")" && cd ../ && pwd)"
-TMP_DIR="${ROOT}/tmp/node"
 EXEC="node"
-ARCHIVE="${EXEC}-release.tar.gz"
+TMP_DIR="${ROOT}/tmp/${EXEC}"
+ARCHIVE="smart-home-${EXEC}.tar.gz"
 
 #
 # build version variables
 #
-PACKAGE="github.com/e154/smart-home-node"
+PACKAGE="github.com/e154/smart-home-${EXEC}"
 VERSION_VAR="main.VersionString"
 REV_VAR="main.RevisionString"
 REV_URL_VAR="main.RevisionURLString"
