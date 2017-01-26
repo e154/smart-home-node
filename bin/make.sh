@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-#set -o errexit
+set -o errexit
 
 #
 # base variables
 #
-BASEDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-TMP_DIR="${BASEDIR}/tmp/node"
-EXEC=node
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}")" && cd ../ && pwd)"
+TMP_DIR="${ROOT}/tmp/node"
+EXEC="node"
+ARCHIVE="${EXEC}-release.tar.gz"
 
 #
 # build version variables
@@ -74,14 +75,12 @@ main() {
 __test() {
 
     DIRS=(
-        "${BASEDIR}/controllers"
-        "${BASEDIR}/models"
-        "${BASEDIR}/router"
+        "/models"
     )
 
     for dir in ${DIRS};
     do
-        pushd ${BASEDIR}${dir}
+        pushd ${ROOT}${dir}
         go test -v
         popd
     done
@@ -90,22 +89,27 @@ __test() {
 __init() {
 
     mkdir -p ${TMP_DIR}
-    cd ${BASEDIR}
+    cd ${ROOT}
     gvt rebuild
 }
 
 __clean() {
 
-    rm -rf ${BASEDIR}/vendor/bin
-    rm -rf ${BASEDIR}/vendor/pkg
-    rm -rf ${BASEDIR}/vendor/src
+    rm -rf ${ROOT}/vendor/bin
+    rm -rf ${ROOT}/vendor/pkg
+    rm -rf ${ROOT}/vendor/src
     rm -rf ${TMP_DIR}
 }
 
 __build() {
 
     go build -ldflags "${GOBUILD_LDFLAGS}" -o ${TMP_DIR}/${EXEC}
-    cp -r ${BASEDIR}/conf ${TMP_DIR}
+    cp -r ${ROOT}/conf ${TMP_DIR}
+    cp ${ROOT}/LICENSE ${TMP_DIR}
+    cp ${ROOT}/README.md ${TMP_DIR}
+    cp ${ROOT}/contributors.txt ${TMP_DIR}
+    cd ${ROOT}/tmp/node
+    tar -zcf ${HOME}/${ARCHIVE} .
 }
 
 __help() {

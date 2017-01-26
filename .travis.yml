@@ -3,21 +3,28 @@ language: go
 go:
   - 1.7.x
 
-env:
-  global:
-    - secure: BfIk8TlLm4ulEYBh2d0/pVNhhINgAhkZsd8AbaYqwgZ7b7n8t97dpTsfePKUuoveFup3qSuWnpGpKUd6am1K5VQOIAqrSti5YkauE+RI+ebPVu3CfkawQ0RLmNx+VAp+mbWoTIPnof6o0qCiKMhEV2EBssAWp813G1KmX6uV+9g2o7uKGslvDmMTb5scoKZ9YyZY93bXxaAWp7AtPYuCtpztM3P6X+Ry1J7NEkVJRh1LpYssOFhrkNoUK0BiGMRtoqtOLDdNxSDrW8SS+UpRTXORsUZLBEPcNspqrsQMBUDVp64w/gOupJcS3kiI2TtUfnGMM+F5UeNTnUYTIRWrx0UslyepHLaVUBkw0aoLxaeSnqpI3swvcuT6QY0uagvQSSjWKfvCOlKnsezFKLOMnDoKR+Yicuv0yR8pDiqIfRWwfOD5DFsWxPgOIpv+OlRDDVuG/+Ip0EPi8lYCwqrfwHB0pNXLPynUEIkDkQBSeWrrlH+f/+HtIEhnDOugyXUKG3qwdSesXJ0OEzq3NmiHjsQfRb3whGgInfUwG5G1+kv1/Gv47VW86iC2SMW28UDYP+j1Y4yzbko7Wbf4WZEb/P0sjEU+2qgXxpof+P7rSpL+935vmyoUJdzy+2arxFUpYBllDS2uxVeSrN72P6480xf2OIPhWXIL8xxPEaeHIMU=
-
 before_install:
   - go get github.com/FiloSottile/gvt
-  - go get golang.org/x/tools/cmd/cover
-  - go get github.com/mattn/goveralls
   - go env && pwd
 
+after_success:
+  - sh ./bin/set_tags.sh
+
 script:
-  - ./make --init
-  - ./make --build
-  - go test -v -covermode=count -coverprofile=coverage.out
-  - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+  - ./bin/make.sh --init
+  - ./bin/make.sh --build
+
+deploy:
+  provider: releases
+  api_key:
+    secure: iBI7Ztq9L8k6obkMEN7uTsffSxwthBNbu4qW7G1+N9nO4n52bb1a0Em/1LI+u0/gSLlfaU5aNdTTjiMiRJlKnNXks4eESKka2YsYfkx8Ebs75i2e5OjZmi2nrK1JJk6kLug47cREVvmATGlzTPi9g1pC8ZaM06Hc0n3yD7FTyH+v2EXQgY0CbNDSvjQQ7heSlqC6N1gmpkDZfNh5zznDmqFowO96OoRIpSgdw/4CUbOjQ/iQ5NiYsCQybR6x6Xf4lxqDm4ho56AUJBQkQsK3H6qqxXlIK1c66ojTUhAvtoiKnEfDzOZskPcpzaDwdPF2AUW9HLyi3kG3nKVZPSoTQYCbZdnAO+SEj8Z8DhFcoTBhdbCSiENJd4fbeD1g6267pgn2W6/vTMro/JQYPRlY1x45GbCuEFWuvRW5ILCPLWMR8T3sa1d4R2GOmG8sDHweh6ch4IZ99NdmImmQZVvCnKSI+E0KyMhgJFrWkzX5udHFQu0BX7P4ExR+bJJriFZ1lh6M5mZecv+uBigP9sRovKPIysKvG+1ZEbj6Tc+/PlsO8Nsh3KoQhjeJ7zre0A3yNNU67kHtUyoEK1GIxpmqzh9CqHhI93UON67JfmS+gsPyB6LLMNJlJwElsjI9LZD1KrUii/Ky5qujTCTOL1LIqgA9K7zl78GMvzZbev63AE4=
+  file: $HOME/node-release.tar.gz
+  skip_cleanup: true
+  on:
+    branch: master
+    repo: e154/smart-home-node
 
 notifications:
-  email: false
+  email:
+    on_success: never
+    on_failure: always
