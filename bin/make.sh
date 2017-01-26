@@ -13,7 +13,7 @@ ARCHIVE="${EXEC}-release.tar.gz"
 #
 # build version variables
 #
-PACKAGE="github.com/e154/smart-home"
+PACKAGE="github.com/e154/smart-home-node"
 VERSION_VAR="main.VersionString"
 REV_VAR="main.RevisionString"
 REV_URL_VAR="main.RevisionURLString"
