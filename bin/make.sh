@@ -3,7 +3,7 @@
 set -o errexit
 
 #
-# base variables
+# base variablesqwe
 #
 ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}")" && cd ../ && pwd)"
 TMP_DIR="${ROOT}/tmp/node"
