@@ -108,7 +108,7 @@ __build() {
     cp ${ROOT}/LICENSE ${TMP_DIR}
     cp ${ROOT}/README.md ${TMP_DIR}
     cp ${ROOT}/contributors.txt ${TMP_DIR}
-    cd ${ROOT}/tmp/node
+    cd ${TMP_DIR}
     tar -zcf ${HOME}/${ARCHIVE} .
 }
 
