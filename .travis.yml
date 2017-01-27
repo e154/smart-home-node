@@ -3,8 +3,14 @@ language: go
 go:
   - 1.7.x
 
+env:
+  global:
+  - secure: Lp2wP7kEuHh73359WXHlkrlpVfXfEvAnHIe6fq1M7cZg+zco6GH41PW+1iPm/Z4UlS382qRT/3QY6GntFDUBVGeGt5xmNaCq3jQAhG5HMqWvSod5OnQK4YxVxzF1osWcBanwK930TMR/aIW1V15P9/AUvMYN1cDrqxQ7+ObknTC4aS42vKCb66CyfJrAMNAfoeRqlz16fiJHvkIHZ31T7M9fddp9NjWpJvTjqoX0OD5gp1Dn6HNk5sesd0loWfwSj0HsZpwuYI173i1WVEkljfIshGAtSqHGONg8+CCrBH7FeJv2uJ/sETYIUK0XorIvYW1/luWrR1/+FT6hKz07+qbi9IKDR8FvZtJrTakH8mI8rrBQF5DNaUPqlZmIRVs2BZQTx2nSYBWuRcrHvwv9btpobDXqZ/XO2Kux426z+LNSVACsqWono5mlPd9Vi/AsyT7f4/RtLDSNwo354xskQYqy8wsJA0ri5IFXZ0aaVFUO4eHVatzP1RAVTCGJzN+YIdC1yZ4NQyydaaALH3I+b8II6rBfOfstKb/vBNVjNEMWKvxlKB3XKhmAbGD56beY+Vug/7IqtADN4w07p7HzarR4HJyGua1851onmduh0MyuZajQKK+JKDlFAMQhLPSynjQWUqp/BPRwss1PwZ+sKfByGW7ZaJLUKkkbkG3bjdg=
+
 before_install:
   - go get github.com/FiloSottile/gvt
+  - go get github.com/mattn/goveralls
+  - go get golang.org/x/tools/cmd/cover
   - go env && pwd
 
 after_success:
@@ -13,6 +19,7 @@ after_success:
 script:
   - ./bin/make.sh --init
   - ./bin/make.sh --build
+  - $HOME/gopath/bin/goveralls -service=travis-ci -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 deploy:
   provider: releases
