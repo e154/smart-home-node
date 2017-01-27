@@ -2,6 +2,7 @@ Smart home node
 ---------------
 
 [![Build Status](https://travis-ci.org/e154/smart-home-node.svg?branch=master)](https://travis-ci.org/e154/smart-home-node)
+[![Coverage Status](https://coveralls.io/repos/github/e154/smart-home-node/badge.svg?branch=cover)](https://coveralls.io/github/e154/smart-home-node?branch=cover)
 
 #####Instalation
 
