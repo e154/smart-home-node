@@ -19,7 +19,7 @@ after_success:
 script:
   - ./bin/make.sh --init
   - ./bin/make.sh --build
-  - $HOME/gopath/bin/goveralls -service=travis-ci -service=travis-ci -repotoken $COVERALLS_TOKEN
+  - $HOME/gopath/bin/goveralls -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 deploy:
   provider: releases
