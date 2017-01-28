@@ -95,8 +95,7 @@ __clean() {
 
 __build() {
 
-    cd ${TMP_DIR}
-    xgo -out=${EXEC} --targets=linux/*,windows/*,darwin/* ${PACKAGE}
+    xgo --out=${EXEC} --targets=linux/*,windows/*,darwin/* --ldflags=${GOBUILD_LDFLAGS} ${PACKAGE}
     cp -r ${ROOT}/conf ${TMP_DIR}
     cp ${ROOT}/LICENSE ${TMP_DIR}
     cp ${ROOT}/README.md ${TMP_DIR}
@@ -109,7 +108,7 @@ __help() {
   cat <<EOF
 Usage: make.sh [options]
 
-Bootstrap Debian 8.0 host with mysql installation.
+Bootstrap Debian 8.0 host
 
 OPTIONS:
 
