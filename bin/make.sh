@@ -95,6 +95,7 @@ __clean() {
 
 __build() {
 
+    cd ${TMP_DIR}
     xgo --out=${EXEC} --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
     cp -r ${ROOT}/conf ${TMP_DIR}
     cp ${ROOT}/LICENSE ${TMP_DIR}
