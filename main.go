@@ -1,30 +1,33 @@
 package main
 
 import (
-	"github.com/e154/smart-home-node/settings"
-	"github.com/e154/smart-home-node/server"
-	"github.com/e154/smart-home-node/cache"
 	"log"
-	"time"
+	"os"
+)
+
+var (
+	stdlog, errlog *log.Logger
 )
 
 func main() {
-	// settings
-	st := settings.SettingsPtr()
-	st.Init()
 
-	// cache
-	cache.Init(int64(st.Cachetime))
-
-	log.Printf("Start node v%s\n", st.AppVresion())
-
-	// rpc server
-	sr := server.ServerPtr()
-	if err := sr.Start(st.IP, st.Port); err != nil {
-		log.Fatal(err.Error())
+	// just start
+	args := os.Args
+	if len(args) == 1 {
+		stdlog.Printf(shortVersionBanner, "")
+		ServiceInitialize()
+		return
 	}
 
-	for ;; {
-		time.Sleep(time.Second)
+	switch args[1] {
+	case "install", "remove", "start", "stop", "status":
+		ServiceInitialize()
+	default:
+		stdlog.Printf(verboseVersionBanner, "", args[0])
 	}
+}
+
+func init() {
+	stdlog = log.New(os.Stdout, "", log.Ldate|log.Ltime)
+	errlog = log.New(os.Stderr, "", log.Ldate|log.Ltime)
 }
