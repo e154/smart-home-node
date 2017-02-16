@@ -95,19 +95,27 @@ __clean() {
 
 __build() {
 
+    # build
     cd ${TMP_DIR}
     xgo --out=${EXEC} --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
+
+    # copy conf
     cp -r ${ROOT}/conf ${TMP_DIR}
+
+    # etc
+    cp -r ${ROOT}/examples ${TMP_DIR}
     cp ${ROOT}/LICENSE ${TMP_DIR}
     cp ${ROOT}/README.md ${TMP_DIR}
     cp ${ROOT}/contributors.txt ${TMP_DIR}
+
+    # gzip
     cd ${TMP_DIR}
     tar -zcf ${HOME}/${ARCHIVE} .
 }
 
 __help() {
   cat <<EOF
-Usage: make.sh [options]
+Usage: travis.sh [options]
 
 Bootstrap Debian 8.0 host
 
