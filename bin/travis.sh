@@ -107,6 +107,7 @@ __build() {
     cp ${ROOT}/LICENSE ${TMP_DIR}
     cp ${ROOT}/README.md ${TMP_DIR}
     cp ${ROOT}/contributors.txt ${TMP_DIR}
+    cp ${ROOT}/bin/node ${TMP_DIR}
 
     # gzip
     cd ${TMP_DIR}
