@@ -2,7 +2,7 @@
 	"version": 0,
 	"dependencies": [
 		{
-			"importpath": "src/github.com/astaxie/beego",
+			"importpath": "github.com/astaxie/beego",
 			"repository": "https://github.com/astaxie/beego",
 			"vcs": "git",
 			"revision": "90999717dda6193c6f970eec52e289b0a9e74998",
@@ -10,7 +10,7 @@
 			"notests": true
 		},
 		{
-			"importpath": "src/github.com/tarm/serial",
+			"importpath": "github.com/tarm/serial",
 			"repository": "https://github.com/tarm/serial",
 			"vcs": "git",
 			"revision": "37be519d49878d0098e34fb614136b81e6c87861",
