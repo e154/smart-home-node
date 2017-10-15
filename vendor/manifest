@@ -13,7 +13,7 @@
 			"importpath": "github.com/e154/serial",
 			"repository": "https://github.com/e154/serial",
 			"vcs": "git",
-			"revision": "07cd5b1de7a33cc6614ffccaa87510f9c12c124a",
+			"revision": "2a77d83c837dd57108d16384693194dacf709232",
 			"branch": "master",
 			"notests": true
 		}
