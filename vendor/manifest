@@ -10,10 +10,10 @@
 			"notests": true
 		},
 		{
-			"importpath": "github.com/tarm/serial",
-			"repository": "https://github.com/tarm/serial",
+			"importpath": "github.com/e154/serial",
+			"repository": "https://github.com/e154/serial",
 			"vcs": "git",
-			"revision": "794054cb266296569307c08d1b475f44505dfab1",
+			"revision": "07cd5b1de7a33cc6614ffccaa87510f9c12c124a",
 			"branch": "master",
 			"notests": true
 		}
