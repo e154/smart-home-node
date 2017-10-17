@@ -11,6 +11,8 @@ var (
 
 func main() {
 
+	qwe
+
 	// just start
 	args := os.Args
 	if len(args) == 1 {
