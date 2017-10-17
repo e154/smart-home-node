@@ -1,7 +1,7 @@
 package serial
 
 import (
-	"github.com/tarm/serial"
+	"github.com/e154/serial"
 	"time"
 )
 
