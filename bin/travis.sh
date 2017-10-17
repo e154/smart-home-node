@@ -95,6 +95,10 @@ __clean() {
 
 __build() {
 
+    echo 'branch'
+    echo $branch
+
+
     # build
     cd ${TMP_DIR}
     xgo --out=${EXEC} --branch=$branch --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
