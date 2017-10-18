@@ -102,6 +102,7 @@ __build() {
 
     # build
     cd ${TMP_DIR}
+    
     xgo --out=${EXEC} --branch=$TRAVIS_BRANCH --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
 
     # copy conf
