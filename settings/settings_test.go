@@ -2,7 +2,6 @@ package settings_test
 
 import (
 	"testing"
-	"fmt"
 	"github.com/e154/smart-home-node/settings"
 )
 
