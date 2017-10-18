@@ -13,9 +13,6 @@ import (
 
 const (
 	CONF_NAME string = "/conf/node.conf"
-	APP_MAJOR = 0
-	APP_MINOR = 1
-	APP_PATCH = 0
 	permMode os.FileMode = 0666
 )
 
@@ -128,7 +125,7 @@ func (s *Settings) Save() (*Settings, error) {
 }
 
 func (s *Settings) AppVresion() string {
-	return fmt.Sprintf("%d.%d.%d", APP_MAJOR, APP_MINOR, APP_PATCH)
+	return os.Getenv("VERSION")
 }
 
 func init() {

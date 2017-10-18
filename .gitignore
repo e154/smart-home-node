@@ -1,4 +1,3 @@
-node.conf
 vendor/*
 !vendor/manifest
 .idea
