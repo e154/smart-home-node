@@ -76,15 +76,6 @@ func (s *Settings) Load() (*Settings, error) {
 		return s, err
 	}
 
-	if cfg.String("app_version") != s.AppVresion() {
-		s.Save()
-		if iter > 2 {
-			return s, fmt.Errorf("Не известная ошибка")
-		}
-
-		return s.Load()
-	}
-
 	s.IP = cfg.String("ip")
 	s.Port, _ = cfg.Int("port")
 	s.Baud, _ = cfg.Int("baud")
