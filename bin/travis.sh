@@ -96,12 +96,13 @@ __clean() {
 __build() {
 
     echo 'branch'
-    echo $branch
+    echo $TRAVIS_BRANCH
+    echo $TRAVIS_PULL_REQUEST_BRANCH
 
 
     # build
     cd ${TMP_DIR}
-    xgo --out=${EXEC} --branch=$branch --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
+    xgo --out=${EXEC} --branch=$TRAVIS_BRANCH --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
 
     # copy conf
     cp -r ${ROOT}/conf ${TMP_DIR}
