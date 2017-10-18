@@ -49,7 +49,7 @@ func (service *Service) Manage() (string, error) {
 	// cache
 	cache.Init(int64(st.Cachetime))
 
-	stdlog.Printf("Start node v%s\n", st.AppVresion())
+	stdlog.Printf("Start node %s\n", st.AppVresion())
 
 	// rpc server
 	sr := server.ServerPtr()

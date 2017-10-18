@@ -14,16 +14,6 @@ func TestSettingsPtr(t *testing.T) {
 	}
 }
 
-func TestSettings_AppVresion(t *testing.T) {
-
-	s := settings.SettingsPtr()
-	ver := s.AppVresion()
-	cur_ver := fmt.Sprintf("%d.%d.%d", settings.APP_MAJOR, settings.APP_MINOR, settings.APP_PATCH)
-	if ver != cur_ver {
-		t.Errorf("Bad version %s != %s", ver, cur_ver)
-	}
-}
-
 func TestSettings_Init(t *testing.T) {
 
 	s := settings.SettingsPtr()
