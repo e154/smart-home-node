@@ -34,7 +34,8 @@ GOBUILD_LDFLAGS="\
         -X ${DEVELOPERS_VAR}=${DEVELOPERS_VALUE} \
         -X ${BUILD_NUMBER_VAR}=${BUILD_NUMBER_VALUE} \
 "
-
+#BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+BRANCH="$(git name-rev --name-only HEAD)"
 
 main() {
 
@@ -97,7 +98,12 @@ __build() {
 
     # build
     cd ${TMP_DIR}
-    xgo --out=${EXEC} --branch=${TRAVIS_BRANCH} --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
+
+    echo "build command:"
+    echo "xgo --out=${EXEC} --branch=${BRANCH} --targets=linux/*,windows/*,darwin/* --ldflags='${GOBUILD_LDFLAGS}' ${PACKAGE}"
+    echo ""
+
+    xgo --out=${EXEC} --branch=${BRANCH} --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
 
     # copy conf
     cp -r ${ROOT}/conf ${TMP_DIR}
