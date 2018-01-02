@@ -16,16 +16,9 @@ const (
 	permMode os.FileMode = 0666
 )
 
-// Singleton
-var instantiated *Settings = nil
-var iter uint8
-
-func SettingsPtr() *Settings {
-	if instantiated == nil {
-		instantiated = new(Settings)
-	}
-	return instantiated
-}
+var (
+	AppConfig *Settings = &Settings{}
+)
 
 type Settings struct {
 	IP		string
@@ -63,8 +56,6 @@ func (s *Settings) Init() *Settings {
 }
 
 func (s *Settings) Load() (*Settings, error) {
-
-	iter++
 
 	if _, err := os.Stat(s.dir + CONF_NAME); os.IsNotExist(err) {
 		return s.Save()
@@ -120,5 +111,5 @@ func (s *Settings) AppVresion() string {
 }
 
 func init() {
-	instantiated = new(Settings)
+	AppConfig.Init()
 }

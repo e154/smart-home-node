@@ -3,7 +3,7 @@ package server
 import (
 	. "github.com/e154/smart-home-node/cache"
 	"github.com/e154/smart-home-node/serial"
-	"github.com/e154/smart-home-node/settings"
+	. "github.com/e154/smart-home-node/settings"
 	"fmt"
 	"errors"
 	"encoding/hex"
@@ -49,13 +49,11 @@ func (m *Modbus) Send(request *Request, result *Result) error {
 		return errors.New("command == []")
 	}
 
-	st := settings.SettingsPtr()
-
 	conn := &serial.Serial{
 		Dev: "",
-		Baud: st.Baud,
-		ReadTimeout: st.Timeout,
-		StopBits: st.StopBits,
+		Baud: AppConfig.Baud,
+		ReadTimeout: AppConfig.Timeout,
+		StopBits: AppConfig.StopBits,
 	}
 
 	if request.Device != "" {
