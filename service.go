@@ -43,10 +43,7 @@ func (service *Service) Manage() (string, error) {
 	stdlog.Printf("Start node %s\n", AppConfig.AppVresion())
 
 	// rpc server
-	sr := server.ServerPtr()
-	if err := sr.Start(AppConfig.IP, AppConfig.Port); err != nil {
-		stdlog.Fatal(err.Error())
-	}
+	server.Start(AppConfig.IP, AppConfig.Port)
 
 	for {
 		select {

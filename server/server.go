@@ -7,26 +7,26 @@ import (
 	"net/rpc"
 )
 
-// Singleton
-var instantiated *Server = nil
-
-func ServerPtr() *Server {
-	if instantiated == nil {
-		instantiated = &Server{
-			clients: make(map[*Client]bool),
-		}
+func Start(addr string, port int) {
+	server := &Server{
+		Addr: addr,
+		Port: port,
+		clients: make(map[*Client]bool),
 	}
-	return instantiated
+
+	server.Start()
 }
 
 type Server struct {
+	Addr	string
+	Port 	int
 	listener net.Listener
 	clients map[*Client]bool
 }
 
-func (s *Server) Start(addr string, port int) (err error) {
+func (s *Server) Start() (err error) {
 
-	tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", addr, port))
+	tcpAddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", s.Addr, s.Port))
 	if err != nil {
 		return
 	}
@@ -36,7 +36,10 @@ func (s *Server) Start(addr string, port int) (err error) {
 		return
 	}
 
-	log.Printf("Start server on %s:%d\r\n", addr, port)
+	rpc.Register(&Modbus{})
+	rpc.Register(&Node{})
+
+	log.Printf("Start server on %s:%d\r\n", s.Addr, s.Port)
 
 	go func() {
 		for {
@@ -62,10 +65,4 @@ func (s *Server) AddClient(conn net.Conn) {
 	}()
 
 	client.listener(conn)
-}
-
-func init() {
-	ServerPtr()
-	rpc.Register(&Modbus{})
-	rpc.Register(&Node{})
 }
