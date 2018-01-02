@@ -11,17 +11,19 @@ var (
 
 func main() {
 
-	// just start
 	args := os.Args
-	if len(args) == 1 {
+	switch len(args) {
+	case 1:
 		stdlog.Printf(shortVersionBanner, "")
 		ServiceInitialize()
-		return
-	}
 
-	switch args[1] {
-	case "install", "remove", "start", "stop", "status":
-		ServiceInitialize()
+	case 2:
+		switch args[1] {
+		case "install", "remove", "start", "stop", "status":
+			ServiceInitialize()
+		default:
+			stdlog.Printf(verboseVersionBanner, "", args[0])
+		}
 	default:
 		stdlog.Printf(verboseVersionBanner, "", args[0])
 	}
