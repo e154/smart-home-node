@@ -7,7 +7,6 @@ import (
 	"github.com/takama/daemon"
 	"github.com/e154/smart-home-node/settings"
 	"github.com/e154/smart-home-node/server"
-	"github.com/e154/smart-home-node/cache"
 	"github.com/astaxie/beego"
 )
 
@@ -45,9 +44,6 @@ func (service *Service) Manage() (string, error) {
 	// settings
 	st := settings.SettingsPtr()
 	st.Init()
-
-	// cache
-	cache.Init(int64(st.Cachetime))
 
 	stdlog.Printf("Start node %s\n", st.AppVresion())
 

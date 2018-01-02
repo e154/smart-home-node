@@ -1,10 +1,9 @@
 package server
 
 import (
-	"github.com/e154/smart-home-node/cache"
+	. "github.com/e154/smart-home-node/cache"
 	"github.com/e154/smart-home-node/serial"
 	"github.com/e154/smart-home-node/settings"
-	"github.com/e154/smart-home-node/models"
 	"fmt"
 	"errors"
 	"encoding/hex"
@@ -16,11 +15,32 @@ const (
 	ADDRESS uint8 = 0
 )
 
+var cache *Cache
+
+type Request struct {
+	Line		string		`json: "line"`
+	Device		string		`json: "device"`
+	Baud		int		`json: "baud"`
+	StopBits	int		`json: "stop_bits"`
+	Sleep		int64		`json: "sleep"`
+	Timeout		time.Duration	`json: "timeout"`
+	Command		[]byte		`json: "command"`
+	Result		bool		`json: "result"`
+}
+
+type Result struct {
+	Command   []byte		`json: "command"`
+	Device    string		`json: "device"`
+	Result    string		`json: "result"`
+	Error     string		`json: "error"`
+	ErrorCode string		`json: "error_code"`
+}
+
 type Modbus struct {
 	mu	sync.Mutex
 }
 
-func (m *Modbus) Send(request *models.Request, result *models.Result) error {
+func (m *Modbus) Send(request *Request, result *Result) error {
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -54,15 +74,15 @@ func (m *Modbus) Send(request *models.Request, result *models.Result) error {
 
 	if conn.Dev == "" {
 
-		cache_ptr := cache.CachePtr()
-		cache_key := cache_ptr.GetKey(fmt.Sprintf("%d_dev", request.Command[ADDRESS]))
+
+		cache_key := cache.GetKey(fmt.Sprintf("%d_dev", request.Command[ADDRESS]))
 
 		//log.Println("send", request.Command)
 		//for i := 0; i<5; i++ {
 
-			cache_exist := cache_ptr.IsExist(cache_key)
+			cache_exist := cache.IsExist(cache_key)
 			if cache_exist {
-				conn.Dev = cache_ptr.Get(cache_key).(string)
+				conn.Dev = cache.Get(cache_key).(string)
 				result.Result, err, result.ErrorCode = m.exec(conn, request)
 				if err == nil {
 					result.Device = conn.Dev
@@ -100,14 +120,13 @@ func (m *Modbus) Send(request *models.Request, result *models.Result) error {
 	return nil
 }
 
-func (m *Modbus) exec(conn *serial.Serial, request *models.Request) (result string, err error, errcode string) {
+func (m *Modbus) exec(conn *serial.Serial, request *Request) (result string, err error, errcode string) {
 
 	// get cache
-	cache_ptr := cache.CachePtr()
-	cache_key := cache_ptr.GetKey(fmt.Sprintf("%d_dev", request.Command[ADDRESS]))
+	cache_key := cache.GetKey(fmt.Sprintf("%d_dev", request.Command[ADDRESS]))
 
 	if _, err = conn.Open(); err != nil {
-		//cache_ptr.Delete(cache_key)
+		//cache.Delete(cache_key)
 		errcode = "SERIAL_PORT_ERROR"
 		//log.Printf("error: %s - %s\r\n",conn.Dev, err.Error())
 		return
@@ -117,14 +136,14 @@ func (m *Modbus) exec(conn *serial.Serial, request *models.Request) (result stri
 	modbus := &serial.Modbus{Serial: conn}
 	var b []byte
 	if b, err = modbus.Send(request.Command); err != nil {
-		//cache_ptr.Delete(cache_key)
+		//cache.Delete(cache_key)
 		errcode = "MODBUS_LINE_ERROR"
 		//log.Printf("error: %s - %s\r\n",conn.Dev, err.Error())
 		return
 	}
 
 	result = hex.EncodeToString(b)
-	cache_ptr.Put("node", cache_key, conn.Dev)
+	cache.Put("node", cache_key, conn.Dev)
 
 	// bug in the devices need timeout, need fix!!!
 	if request.Sleep != 0 {
@@ -132,4 +151,11 @@ func (m *Modbus) exec(conn *serial.Serial, request *models.Request) (result stri
 	}
 
 	return
+}
+
+func init() {
+	cache = &Cache{
+		Cachetime: 3600,
+		Name: "node",
+	}
 }
