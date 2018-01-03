@@ -36,7 +36,7 @@ func (s *Server) Start() (err error) {
 		return
 	}
 
-	rpc.Register(&Modbus{})
+	rpc.Register(&Smartbus{})
 	rpc.Register(&Node{})
 
 	log.Printf("Start server on %s:%d\r\n", s.Addr, s.Port)

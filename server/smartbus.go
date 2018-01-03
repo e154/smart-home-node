@@ -4,6 +4,7 @@ import (
 	. "github.com/e154/smart-home-node/cache"
 	"github.com/e154/smart-home-node/serial"
 	. "github.com/e154/smart-home-node/settings"
+	"github.com/e154/smart-home-node/serial/smartbus"
 	"fmt"
 	"errors"
 	"encoding/hex"
@@ -36,11 +37,11 @@ type Result struct {
 	ErrorCode string		`json: "error_code"`
 }
 
-type Modbus struct {
+type Smartbus struct {
 	mu	sync.Mutex
 }
 
-func (m *Modbus) Send(request *Request, result *Result) error {
+func (m *Smartbus) Send(request *Request, result *Result) error {
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -89,7 +90,7 @@ func (m *Modbus) Send(request *Request, result *Result) error {
 			} else {
 
 				//
-				devices := serial.FindSerials()
+				devices := serial.DeviceList()
 				for _, device := range devices {
 					conn.Dev = device
 					result.Result, err, result.ErrorCode = m.exec(conn, request)
@@ -118,7 +119,7 @@ func (m *Modbus) Send(request *Request, result *Result) error {
 	return nil
 }
 
-func (m *Modbus) exec(conn *serial.Serial, request *Request) (result string, err error, errcode string) {
+func (m *Smartbus) exec(conn *serial.Serial, request *Request) (result string, err error, errcode string) {
 
 	// get cache
 	cache_key := cache.GetKey(fmt.Sprintf("%d_dev", request.Command[ADDRESS]))
@@ -131,7 +132,7 @@ func (m *Modbus) exec(conn *serial.Serial, request *Request) (result string, err
 	}
 	defer conn.Close()
 
-	modbus := &serial.Modbus{Serial: conn}
+	modbus := &smartbus.Smartbus{Serial: conn}
 	var b []byte
 	if b, err = modbus.Send(request.Command); err != nil {
 		//cache.Delete(cache_key)

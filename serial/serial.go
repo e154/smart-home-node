@@ -6,12 +6,12 @@ import (
 )
 
 type Serial struct {
-	Dev		string
-	Baud		int
+	Dev				string
+	Baud			int
 	ReadTimeout 	time.Duration
-	StopBits 	int
-	config		*serial.Config
-	Port		*serial.Port
+	StopBits 		int
+	config			*serial.Config
+	Port			*serial.Port
 }
 
 func (s *Serial) Open() (*Serial, error) {

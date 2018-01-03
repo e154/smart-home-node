@@ -1,9 +1,10 @@
-package serial
+package smartbus
 
 import (
 	"bufio"
 	"bytes"
 	"errors"
+	"github.com/e154/smart-home-node/serial"
 )
 
 const (
@@ -29,8 +30,8 @@ const (
 	BYTE_LOW_NIBBLE
 )
 
-type Modbus struct {
-	Serial       *Serial
+type Smartbus struct {
+	Serial       *serial.Serial
 	rcvState     uint8
 	rcvBytePos   uint8
 	rcvBufferPos uint8
@@ -41,7 +42,7 @@ type Modbus struct {
 // 1 - address		u08
 // 1 - function		u08
 // 1..n - data		u08 x N
-func (m *Modbus) Send(data []byte) (result []byte, err error) {
+func (m *Smartbus) Send(data []byte) (result []byte, err error) {
 
 	var b byte
 	var ok bool
@@ -73,7 +74,7 @@ func (m *Modbus) Send(data []byte) (result []byte, err error) {
 	return
 }
 
-func (m *Modbus) asciiReceiveFSM(b byte) (bool, error) {
+func (m *Smartbus) asciiReceiveFSM(b byte) (bool, error) {
 
 	//log.Print(string(b))
 	switch m.rcvState {
@@ -84,7 +85,7 @@ func (m *Modbus) asciiReceiveFSM(b byte) (bool, error) {
 		} else if( b == '\r' ) {
 			m.rcvState = STATE_RX_WAIT_EOF;
 		} else {
-			b = m.char2bin(b)
+			b = char2bin(b)
 			switch m.rcvBytePos {
 			case BYTE_HIGH_NIBBLE:
 				m.rcvBuf = append(m.rcvBuf, b<<4)
@@ -98,7 +99,7 @@ func (m *Modbus) asciiReceiveFSM(b byte) (bool, error) {
 		if (b == '\n') {
 			m.rcvState = STATE_RX_IDLE
 			//log.Printf("receive <- %X, len: %d\r\n", m.rcvBuf, len(m.rcvBuf)) //TODO remove
-			return true, m.checkError(m.rcvBuf)
+			return true, checkError(m.rcvBuf)
 
 		} else if (b == ':') {
 			m.rcvBuf = []byte{}
@@ -121,10 +122,10 @@ func (m *Modbus) asciiReceiveFSM(b byte) (bool, error) {
 // 1 - address		u08
 // 1 - function		u08
 // 1..n - data		u08 x N
-// 1 - lrc		u08
-// 1 - \r		u08
-// 1 - \n		u08
-func (m *Modbus) asciiTransmit(data []byte) (err error) {
+// 1 - lrc			u08
+// 1 - \r			u08
+// 1 - \n			u08
+func (m *Smartbus) asciiTransmit(data []byte) (err error) {
 
 	if m.trcBuff != nil {
 		m.trcBuff.Reset()
@@ -136,8 +137,8 @@ func (m *Modbus) asciiTransmit(data []byte) (err error) {
 	}
 
 	for _, d := range data {
-		m.trcBuff.WriteByte(m.bin2char(HI(d)))
-		m.trcBuff.WriteByte(m.bin2char(LOW(d)))
+		m.trcBuff.WriteByte(bin2char(HI(d)))
+		m.trcBuff.WriteByte(bin2char(LOW(d)))
 	}
 
 	m.trcBuff.Write([]byte{'\r', '\n'})
@@ -157,33 +158,7 @@ func (m *Modbus) asciiTransmit(data []byte) (err error) {
 	return
 }
 
-func (m *Modbus) Device(address byte) *Device {
-	return &Device{address: address, modbus: m}
-}
-
-func (m *Modbus) bin2char(b byte) byte {
-
-	if( b <= 0x09 ) {
-		return byte( '0' + b )
-	} else if( ( b >= 0x0A ) && ( b <= 0x0F ) ) {
-		return byte( b - 0x0A + 'A' )
-	}
-
-	return '0'
-}
-
-func (m *Modbus) char2bin(b byte) byte {
-
-	if( b >= '0' ) && ( b <= '9' ) {
-		return byte( b - '0' )
-	} else if( ( b >= 'A' ) && ( b <= 'F' ) ) {
-		return byte( b - 'A' + 0x0A )
-	}
-
-	return 0xFF
-}
-
-func (m *Modbus) checkError(buf []byte) error {
+func checkError(buf []byte) error {
 
 	var errCode uint8
 
@@ -221,4 +196,46 @@ func (m *Modbus) checkError(buf []byte) error {
 	}
 
 	return err
+}
+
+func bin2char(b byte) byte {
+
+	if( b <= 0x09 ) {
+		return byte( '0' + b )
+	} else if( ( b >= 0x0A ) && ( b <= 0x0F ) ) {
+		return byte( b - 0x0A + 'A' )
+	}
+
+	return '0'
+}
+
+func char2bin(b byte) byte {
+
+	if( b >= '0' ) && ( b <= '9' ) {
+		return byte( b - '0' )
+	} else if( ( b >= 'A' ) && ( b <= 'F' ) ) {
+		return byte( b - 'A' + 0x0A )
+	}
+
+	return 0xFF
+}
+
+func HI(b byte) (byte) {
+	return (b >> 8) & 0xFF
+}
+
+func LOW(b byte) (byte) {
+	return b & 0x0F
+}
+
+func LRC(data []byte) byte {
+
+	var ucLRC uint8 = 0
+
+	var b byte
+	for _, b = range data {
+		ucLRC += b
+	}
+
+	return uint8(-int8(ucLRC))
 }

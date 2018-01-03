@@ -3,13 +3,20 @@ package serial
 import (
 	"io/ioutil"
 	"strings"
+	"time"
+)
+
+const (
+	BAUD = 19200
+	READ_TIMEOUT = time.Millisecond * 200
+	STOP_BITS = 2
 )
 
 var (
 	Devices []string
 )
 
-func FindSerials() []string {
+func DeviceList() []string {
 
 	Devices = []string{}
 	contents, _ := ioutil.ReadDir("/dev")
@@ -25,10 +32,23 @@ func FindSerials() []string {
 	return Devices
 }
 
-func HI(b byte) (byte) {
-	return (b >> 8) & 0xFF
-}
+func SerialList() (serial_list []*Serial) {
 
-func LOW(b byte) (byte) {
-	return b & 0x0F
+	dev_list := DeviceList()
+	if len(dev_list) == 0 {
+		return
+	}
+
+	for _, dev := range dev_list {
+		serial_port := &Serial{
+			Dev: dev,
+			Baud: BAUD,
+			ReadTimeout: READ_TIMEOUT,
+			StopBits: STOP_BITS,
+		}
+
+		serial_list = append(serial_list, serial_port)
+	}
+
+	return
 }
