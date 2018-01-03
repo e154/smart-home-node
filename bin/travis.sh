@@ -116,7 +116,7 @@ __build() {
     cp -r ${ROOT}/conf ${TMP_DIR}
 
     # etc
-    cp -r ${ROOT}/examples ${TMP_DIR}
+#    cp -r ${ROOT}/examples ${TMP_DIR}
     cp ${ROOT}/LICENSE ${TMP_DIR}
     cp ${ROOT}/README.md ${TMP_DIR}
     cp ${ROOT}/contributors.txt ${TMP_DIR}
