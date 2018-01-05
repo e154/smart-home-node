@@ -23,6 +23,7 @@ func DeviceList() []string {
 
 	for _, f := range contents {
 		if strings.Contains(f.Name(), "tty.usbserial") ||
+			strings.Contains(f.Name(), "cu.SLAB_USB") ||
 			strings.Contains(f.Name(), "ttyS") ||
 			strings.Contains(f.Name(), "ttyUSB") {
 			Devices = append(Devices, "/dev/" + f.Name())
