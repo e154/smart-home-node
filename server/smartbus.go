@@ -38,11 +38,11 @@ type Smartbus struct {
 
 func (m *Smartbus) Send(request *Request, result *Result) error {
 
+	//fmt.Println("---", request.Command)
+
 	if len(request.Command) == 0 {
 		return errors.New("bad command")
 	}
-
-	//fmt.Println("---", request.Command)
 
 	addr := int(request.Command[ADDRESS])
 	cacheKey := cache.GetKey(fmt.Sprintf("%d_dev", addr))
