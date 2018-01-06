@@ -12,13 +12,9 @@ const (
 	STOP_BITS = 2
 )
 
-var (
-	Devices []string
-)
-
 func DeviceList() []string {
 
-	Devices = []string{}
+	devices := []string{}
 	contents, _ := ioutil.ReadDir("/dev")
 
 	for _, f := range contents {
@@ -26,11 +22,11 @@ func DeviceList() []string {
 			strings.Contains(f.Name(), "cu.SLAB_USB") ||
 			strings.Contains(f.Name(), "ttyS") ||
 			strings.Contains(f.Name(), "ttyUSB") {
-			Devices = append(Devices, "/dev/" + f.Name())
+			devices = append(devices, "/dev/" + f.Name())
 		}
 	}
 
-	return Devices
+	return devices
 }
 
 func SerialList() (serial_list []*Serial) {
