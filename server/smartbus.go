@@ -38,7 +38,7 @@ type Smartbus struct {
 
 func (m *Smartbus) Send(request *Request, result *Result) error {
 
-	//fmt.Println("---", request.Command)
+	//fmt.Println("--->", request.Command)
 
 	if len(request.Command) == 0 {
 		return errors.New("bad command")
