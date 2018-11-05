@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/e154/smart-home-node/serial"
+	"fmt"
 )
 
 const (
@@ -148,7 +149,7 @@ func (m *Smartbus) asciiTransmit(data []byte) (err error) {
 		return
 	}
 
-	//log.Printf("send -> %X\r\n", m.trcBuff.Bytes()) //TODO comment
+	fmt.Printf("send -> %X, %v\r\n", m.trcBuff.Bytes(), data) //TODO comment
 
 	_, err = m.Serial.Port.Write(m.trcBuff.Bytes())
 	if err != nil {
@@ -237,5 +238,5 @@ func LRC(data []byte) byte {
 		ucLRC += b
 	}
 
-	return uint8(-int8(ucLRC))
+	return uint8(0xFF - ucLRC)
 }
