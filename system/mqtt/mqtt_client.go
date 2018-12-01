@@ -67,6 +67,8 @@ func NewClient(cfg *MqttConfig,
 		}
 	}()
 
+	go client.ping()
+
 	return
 }
 
@@ -112,9 +114,9 @@ func (c *Client) Disconnect() {
 	}
 }
 
-func (c *Client) Publish(retained bool, payload interface{}) (err error) {
+func (c *Client) Publish(payload interface{}) (err error) {
 	if c.client != nil && (c.client.IsConnected() || c.client.IsConnectionOpen()) {
-		c.client.Publish(c.topic + "/resp", c.qos, retained, payload)
+		c.client.Publish(c.topic + "/resp", c.qos, false, payload)
 	}
 	return
 }
@@ -145,4 +147,13 @@ func (c *Client) brokerClientsHandler(client MQTT.Client, msg MQTT.Message) {
 	log.Debugf("BrokerClientsHandler      ")
 	log.Debugf("[%s]  ", msg.Topic())
 	log.Debugf("%s\n", msg.Payload())
+}
+
+func (c *Client) ping() {
+	for ;; {
+		if c.client != nil && (c.client.IsConnected() || c.client.IsConnectionOpen()) {
+			c.Publish("live")
+		}
+		time.Sleep(5 * time.Second)
+	}
 }
