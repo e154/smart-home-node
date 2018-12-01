@@ -1,35 +1,49 @@
 package main
 
 import (
-	"log"
 	"os"
+	"fmt"
+	"github.com/sirupsen/logrus"
+	"github.com/e154/smart-home-node/system/graceful_service"
+	"github.com/op/go-logging"
+	"github.com/e154/smart-home-node/system/client"
+	l "github.com/e154/smart-home-node/system/logging"
 )
 
 var (
-	stdlog, errlog *log.Logger
+	log = logging.MustGetLogger("main")
 )
 
 func main() {
 
-	args := os.Args
-	switch len(args) {
-	case 1:
-		stdlog.Printf(shortVersionBanner, "")
-		ServiceInitialize()
-
-	case 2:
-		switch args[1] {
-		case "install", "remove", "start", "stop", "status":
-			ServiceInitialize()
+	args := os.Args[1:]
+	for _, arg := range args {
+		switch arg {
+		case "-v", "--version":
+			fmt.Printf(shortVersionBanner, GetHumanVersion())
+			return
 		default:
-			stdlog.Printf(verboseVersionBanner, "", args[0])
+			fmt.Printf(verboseVersionBanner, "v2", os.Args[0])
+			return
 		}
-	default:
-		stdlog.Printf(verboseVersionBanner, "", args[0])
 	}
+
+	start()
 }
 
-func init() {
-	stdlog = log.New(os.Stdout, "", log.Ldate|log.Ltime)
-	errlog = log.New(os.Stderr, "", log.Ldate|log.Ltime)
+func start() {
+
+	fmt.Printf(shortVersionBanner, "")
+
+	container := BuildContainer()
+	container.Invoke(func(
+		graceful *graceful_service.GracefulService,
+		lx *logrus.Logger,
+		client *client.Client) {
+
+		l.Initialize(lx)
+		client.Connect()
+
+		graceful.Wait()
+	})
 }
