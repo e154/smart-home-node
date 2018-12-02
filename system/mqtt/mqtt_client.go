@@ -67,7 +67,7 @@ func NewClient(cfg *MqttConfig,
 		}
 	}()
 
-	go client.ping()
+	//go client.ping()
 
 	return
 }
@@ -83,8 +83,10 @@ func (c *Client) Connect() (err error) {
 		return
 	}
 
-	time.Sleep(time.Second)
-	c.Subscribe(c.topic + "/req", c.qos, c.handler)
+	//time.Sleep(time.Second)
+	if err = c.Subscribe(c.topic+"/req", c.qos, c.handler); err != nil {
+		log.Warning(err.Error())
+	}
 
 	if token := c.client.Subscribe("$SYS/broker/connection/#", 0, c.brokerConnectionHandler); token.Wait() && token.Error() != nil {
 		log.Error(token.Error().Error())
@@ -114,16 +116,16 @@ func (c *Client) Disconnect() {
 	}
 }
 
-func (c *Client) Publish(payload interface{}) (err error) {
+func (c *Client) Publish(topic string, payload interface{}) (err error) {
 	if c.client != nil && (c.client.IsConnected() || c.client.IsConnectionOpen()) {
-		c.client.Publish(c.topic + "/resp", c.qos, false, payload)
+		c.client.Publish(c.topic + topic, c.qos, false, payload)
 	}
 	return
 }
 
 func (c *Client) Subscribe(topic string, qos byte, handler func(MQTT.Client, MQTT.Message)) (err error) {
 
-		if token := c.client.Subscribe(topic, qos, handler); token.Wait() && token.Error() != nil {
+	if token := c.client.Subscribe(topic, qos, handler); token.Wait() && token.Error() != nil {
 		log.Error(token.Error().Error())
 	}
 
@@ -149,11 +151,10 @@ func (c *Client) brokerClientsHandler(client MQTT.Client, msg MQTT.Message) {
 	log.Debugf("%s\n", msg.Payload())
 }
 
-func (c *Client) ping() {
-	for ;; {
-		if c.client != nil && (c.client.IsConnected() || c.client.IsConnectionOpen()) {
-			c.Publish("live")
-		}
-		time.Sleep(5 * time.Second)
-	}
+func (c *Client) IsConnected() bool {
+	return c.client.IsConnected()
+}
+
+func (c *Client) IsConnectionOpen() bool {
+	return c.client.IsConnectionOpen()
 }

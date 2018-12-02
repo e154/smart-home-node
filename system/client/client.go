@@ -15,7 +15,8 @@ import (
 )
 
 const (
-	TimeTick = 30 * time.Second
+	threadTimeTick = 5 * time.Second
+	pingTimeTick   = 1 * time.Second
 )
 
 var (
@@ -26,6 +27,7 @@ type Client struct {
 	cfg                 *config.AppConfig
 	client              *mqtt.Client
 	updateThreadsTicker *time.Ticker
+	updatePinkTicker    *time.Ticker
 	sync.Mutex
 	pool  Threads
 	cache *cache.Cache
@@ -41,7 +43,8 @@ func NewClient(cfg *config.AppConfig,
 	}
 	client := &Client{
 		cfg:                 cfg,
-		updateThreadsTicker: time.NewTicker(TimeTick),
+		updateThreadsTicker: time.NewTicker(threadTimeTick),
+		updatePinkTicker:    time.NewTicker(pingTimeTick),
 		pool:                make(Threads),
 		cache:               cache,
 	}
@@ -57,6 +60,8 @@ func NewClient(cfg *config.AppConfig,
 	go func() {
 		for {
 			select {
+			case <-client.updatePinkTicker.C:
+				client.ping()
 			case <-client.updateThreadsTicker.C:
 				client.UpdateThreads()
 			}
@@ -68,6 +73,7 @@ func NewClient(cfg *config.AppConfig,
 
 func (c *Client) Shutdown() {
 	c.updateThreadsTicker.Stop()
+	c.updatePinkTicker.Stop()
 	c.client.Disconnect()
 }
 
@@ -80,6 +86,7 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 	message := &MessageReq{}
 	if err := json.Unmarshal(msg.Payload(), message); err != nil {
 		log.Error(err.Error())
+		return
 	}
 
 	resp, err := c.SendMessageToThread(message)
@@ -101,19 +108,19 @@ func (c *Client) SendMessageToThread(message *MessageReq) (resp *MessageResp, er
 
 	//поиск в кэше
 	cacheKey := c.cache.GetKey(fmt.Sprintf("%d_dev", message.DeviceId))
-	var dev string
+	var threadDev string
 	if c.cache.IsExist(cacheKey) {
-		dev = c.cache.Get(cacheKey).(string)
+		threadDev = c.cache.Get(cacheKey).(string)
 	}
 
-	if dev != "" {
-		resp, err = c.pool[dev].Send(message)
+	if threadDev != "" {
+		resp, err = c.pool[threadDev].Send(message)
 		return
 	}
 
-	for _, thread := range c.pool {
+	for threadDev, thread := range c.pool {
 		if resp, err = thread.Send(message); err == nil {
-			c.cache.Put("node", cacheKey, message.DeviceId)
+			c.cache.Put("node", cacheKey, threadDev)
 		}
 	}
 
@@ -153,5 +160,16 @@ func (c *Client) UpdateThreads() {
 
 		log.Debugf("Add thread to pool: %s", dev)
 		c.pool[dev] = NewThread(dev)
+	}
+}
+
+func (c *Client) ping() {
+	if c.client != nil && (c.client.IsConnected() || c.client.IsConnectionOpen()) {
+		message := map[string]interface{}{
+			"status": "live",
+			"thread": len(c.pool),
+		}
+		data, _ := json.Marshal(message)
+		c.client.Publish("/ping", data)
 	}
 }

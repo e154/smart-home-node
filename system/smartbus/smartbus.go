@@ -5,9 +5,7 @@ import (
 	"github.com/e154/smart-home-node/system/serial"
 	"time"
 	"github.com/e154/smart-home-node/system/smartbus/driver"
-	"encoding/hex"
 	"github.com/op/go-logging"
-	"fmt"
 )
 
 var (
@@ -42,7 +40,7 @@ func (s *Smartbus) Open() (result string, err error, errcode string) {
 
 	if _, err = s.serialDev.Open(); err != nil {
 		errcode = "SERIAL_PORT_ERROR"
-		log.Errorf("%s - %s\r\n", s.dev, err.Error())
+		log.Warningf("%s - %s\r\n", s.dev, err.Error())
 		return
 	}
 
@@ -56,22 +54,24 @@ func (s *Smartbus) Close() (result string, err error, errcode string) {
 	return
 }
 
-func (s *Smartbus) Exec() (result string, err error, errcode string) {
+func (s *Smartbus) Exec() (result []byte, err error, errcode string) {
 
 	command := make([]byte, 0)
 
 	command = append(command, byte(s.params.Device))
 	command = append(command, s.command...)
 
-	fmt.Println("s.command", command)
 	modbus := &driver.Smartbus{Serial: s.serialDev}
-	var b []byte
-	if b, err = modbus.Send(command); err != nil {
+	if result, err = modbus.Send(command); err != nil {
 		errcode = "MODBUS_LINE_ERROR"
-		log.Errorf("%s - %s\r\n", s.dev, err.Error())
-		return
+		log.Warningf("%s - %s\r\n", s.dev, err.Error())
+		//TODO remove
+		if err.Error() == "ILLEGAL_LRC" {
+			err = nil
+		} else {
+			return
+		}
 	}
-	result = hex.EncodeToString(b)
 
 	// bug in the devices need timeout, need fix!!!
 	if s.params.Sleep != 0 {
