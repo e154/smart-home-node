@@ -34,3 +34,13 @@ const (
 	DevTypeZigbee   = DeviceType("zigbee")
 	DevTypeDefault  = DeviceType("default")
 )
+
+type ThreadState string
+
+const (
+	ThreadOk          = ThreadState("ok")
+	ThreadBusy        = ThreadState("busy")
+	ThreadDevNotFound = ThreadState("port by device not found")
+	ThreadNotFound    = ThreadState("port not found")
+	ThreadAllBusy     = ThreadState("all ports busy")
+)

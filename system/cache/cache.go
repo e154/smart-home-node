@@ -4,21 +4,25 @@ import (
 	"github.com/astaxie/beego/cache"
 	"fmt"
 	"time"
-	"log"
+	"github.com/op/go-logging"
+)
+
+var (
+	log = logging.MustGetLogger("cache")
 )
 
 type Cache struct {
-	bm		cache.Cache
-	Cachetime	int64
-	Name		string	"maincache"
-	Verbose		bool
+	bm        cache.Cache
+	Cachetime int64
+	Name      string "maincache"
+	Verbose   bool
 }
 
 func (c *Cache) init() (*Cache, error) {
 	c.log("init")
 
 	var err error
-	c.bm, err = cache.NewCache("memory", fmt.Sprintf(`{"interval":%d}`, time.Duration(c.Cachetime) * time.Second))
+	c.bm, err = cache.NewCache("memory", fmt.Sprintf(`{"interval":%d}`, time.Duration(c.Cachetime)*time.Second))
 	if err != nil {
 		c.log("error %s", err.Error())
 	}
@@ -37,11 +41,11 @@ func (c *Cache) ClearAll() (*Cache, error) {
 	return c, err
 }
 
-func (c *Cache) GetKey(key interface {}) string {
+func (c *Cache) GetKey(key interface{}) string {
 	return fmt.Sprintf("%s_%s", c.Name, key.(string))
 }
 
-func (c *Cache) Clear(key interface {}) (*Cache, error) {
+func (c *Cache) Clear(key interface{}) (*Cache, error) {
 	cacheKey := c.GetKey(key)
 	c.log("clear %s", cacheKey)
 
@@ -67,7 +71,7 @@ func (c *Cache) addToGroup(group, key string) (*Cache, error) {
 	}
 
 	exist := false
-	for _,v := range g {
+	for _, v := range g {
 		if key == v {
 			exist = true
 		}
@@ -77,7 +81,7 @@ func (c *Cache) addToGroup(group, key string) (*Cache, error) {
 	if !exist {
 		c.log("add to group %s", group)
 		g = append(g, key)
-		err = c.bm.Put(group, g, time.Duration(c.Cachetime) * time.Second)
+		err = c.bm.Put(group, g, time.Duration(c.Cachetime)*time.Second)
 	}
 
 	return c, err
@@ -110,14 +114,14 @@ func (c *Cache) ClearGroup(group string) (*Cache, error) {
 	return c, err
 }
 
-func (c *Cache) Put(group, key string, val interface {}) (*Cache, error) {
+func (c *Cache) Put(group, key string, val interface{}) (*Cache, error) {
 	c.log("put key %s", key)
 
 	if c.bm == nil {
 		c.init()
 	}
 
-	if err := c.bm.Put(key, val, time.Duration(c.Cachetime) * time.Second);err != nil {
+	if err := c.bm.Put(key, val, time.Duration(c.Cachetime)*time.Second); err != nil {
 		return c, err
 	}
 
@@ -132,7 +136,7 @@ func (c *Cache) IsExist(key string) bool {
 	return c.bm.IsExist(key)
 }
 
-func (c *Cache) Get(key string) interface {} {
+func (c *Cache) Get(key string) interface{} {
 	c.log("get key %s", key)
 
 	if c.bm == nil {
@@ -156,6 +160,6 @@ func (c *Cache) Delete(key string) *Cache {
 
 func (c *Cache) log(format string, a ...interface{}) {
 	if c.Verbose {
-		log.Print("cache: ", fmt.Sprintf(format, a...))
+		log.Debugf("cache: %s", fmt.Sprintf(format, a...))
 	}
 }
