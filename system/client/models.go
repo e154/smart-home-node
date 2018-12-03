@@ -19,3 +19,11 @@ type MessageResp struct {
 	Response   []byte          `json:"response"`
 	Status     string          `json:"status"`
 }
+
+type ClientStatusModel struct {
+	Status ClientStatus `json:"status"`
+	Thread int          `json:"thread"`
+	Rps    int64        `json:"rps"`
+	Min    int64        `json:"min"`
+	Max    int64        `json:"max"`
+}

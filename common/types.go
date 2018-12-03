@@ -1,24 +1,5 @@
 package common
 
-type ScriptLang string
-
-const (
-	ScriptLangTs         = ScriptLang("ts")
-	ScriptLangCoffee     = ScriptLang("coffeescript")
-	ScriptLangJavascript = ScriptLang("javascript")
-)
-
-type FlowElementsPrototypeType string
-
-const (
-	FlowElementsPrototypeDefault        = FlowElementsPrototypeType("default")
-	FlowElementsPrototypeMessageHandler = FlowElementsPrototypeType("MessageHandler")
-	FlowElementsPrototypeMessageEmitter = FlowElementsPrototypeType("MessageEmitter")
-	FlowElementsPrototypeTask           = FlowElementsPrototypeType("Task")
-	FlowElementsPrototypeGateway        = FlowElementsPrototypeType("Gateway")
-	FlowElementsPrototypeFlow           = FlowElementsPrototypeType("Flow")
-)
-
 type StatusType string
 
 const (
@@ -43,4 +24,13 @@ const (
 	ThreadDevNotFound = ThreadState("port by device not found")
 	ThreadNotFound    = ThreadState("port not found")
 	ThreadAllBusy     = ThreadState("all ports busy")
+)
+
+type ClientStatus string
+
+const (
+	StatusEnabled = ClientStatus("enabled")
+	StatusDisabled = ClientStatus("disabled")
+	StatusError = ClientStatus("error")
+	StatusBusy = ClientStatus("busy")
 )

@@ -10,6 +10,25 @@
   version = "v1.11.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:24d226d3992057e673fd9e437e214ae610c6231953fa17fe56354ae75b57fafd"
+  name = "github.com/e154/serial"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2a77d83c837dd57108d16384693194dacf709232"
+
+[[projects]]
+  digest = "1:184008c955d6a3226b700c13ed0e875a7a051a759618f9bccba9b5c99f17faa5"
+  name = "github.com/eclipse/paho.mqtt.golang"
+  packages = [
+    ".",
+    "packets",
+  ]
+  pruneopts = "UT"
+  revision = "36d01c2b4cbeb3d2a12063e4880ce30800af9560"
+  version = "v1.1.1"
+
+[[projects]]
   digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
@@ -49,6 +68,14 @@
   pruneopts = "UT"
   revision = "b2cb9fa56473e98db8caba80237377e83fe44db5"
   version = "v1"
+
+[[projects]]
+  digest = "1:7233f2b1f864831a729ca0d48e84081ac8b4ce040a5aad3b394c421a7a0405cb"
+  name = "github.com/paulbellamy/ratecounter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "524851a93235ac051e3540563ed7909357fe24ab"
+  version = "v0.2.0"
 
 [[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
@@ -105,6 +132,18 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:50095e42352dba1c6ab2cec7e03b24fb4b513123f41d4ab4dbd2627c25fe18b8"
+  name = "golang.org/x/net"
+  packages = [
+    "internal/socks",
+    "proxy",
+    "websocket",
+  ]
+  pruneopts = "UT"
+  revision = "351d144fa1fc0bd934e2408202be0c29f25e35a0"
+
+[[projects]]
+  branch = "master"
   digest = "1:0c7cb58af944f9690af91474a75371eecfe54c1ce3771a8dc08924430ee785d3"
   name = "golang.org/x/sys"
   packages = [
@@ -119,10 +158,12 @@
   analyzer-version = 1
   input-imports = [
     "github.com/astaxie/beego/cache",
+    "github.com/e154/serial",
+    "github.com/eclipse/paho.mqtt.golang",
     "github.com/olivere/elastic",
     "github.com/op/go-logging",
+    "github.com/paulbellamy/ratecounter",
     "github.com/sirupsen/logrus",
-    "github.com/surgemq/message",
     "github.com/surgemq/surgemq/service",
   ]
   solver-name = "gps-cdcl"

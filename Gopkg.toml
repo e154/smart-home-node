@@ -30,10 +30,6 @@
   version = "1.11.1"
 
 [[constraint]]
-  branch = "v2-mqtt"
-  name = "github.com/e154/smart-home"
-
-[[constraint]]
   name = "github.com/olivere/elastic"
   version = "6.2.13"
 
@@ -45,9 +41,6 @@
   name = "github.com/sirupsen/logrus"
   version = "1.2.0"
 
-[[constraint]]
-  branch = "master"
-  name = "github.com/surgemq/message"
 
 [[constraint]]
   branch = "master"
@@ -60,3 +53,7 @@
 [[constraint]]
   name = "github.com/eclipse/paho.mqtt.golang"
   version = "1.1.1"
+
+[[constraint]]
+  name = "github.com/paulbellamy/ratecounter"
+  version = "0.2.0"

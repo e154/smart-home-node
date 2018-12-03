@@ -12,6 +12,8 @@ import (
 	"github.com/e154/smart-home-node/system/serial"
 	"sync"
 	"github.com/e154/smart-home-node/system/cache"
+	"github.com/e154/smart-home-node/common"
+	"github.com/paulbellamy/ratecounter"
 )
 
 const (
@@ -24,20 +26,22 @@ var (
 )
 
 type Client struct {
+	Stat
 	cfg                 *config.AppConfig
 	client              *mqtt.Client
 	updateThreadsTicker *time.Ticker
 	updatePinkTicker    *time.Ticker
+	status              common.ClientStatus
+	cache               *cache.Cache
 	sync.Mutex
-	pool  Threads
-	cache *cache.Cache
+	pool Threads
 }
 
 func NewClient(cfg *config.AppConfig,
 	graceful *graceful_service.GracefulService,
 	qService *mqtt.Mqtt) *Client {
 
-	cache := &cache.Cache{
+	memCache := &cache.Cache{
 		Cachetime: 3600,
 		Name:      "node",
 	}
@@ -46,7 +50,12 @@ func NewClient(cfg *config.AppConfig,
 		updateThreadsTicker: time.NewTicker(threadTimeTick),
 		updatePinkTicker:    time.NewTicker(pingTimeTick),
 		pool:                make(Threads),
-		cache:               cache,
+		cache:               memCache,
+		status:              common.StatusEnabled,
+		Stat: Stat{
+			rpsCounter: ratecounter.NewRateCounter(1 * time.Second),
+			avgRequest: ratecounter.NewAvgRateCounter(60 * time.Second),
+		},
 	}
 	topic := fmt.Sprintf("/home/%s", cfg.Topic)
 	c, err := qService.NewClient(topic, 0x0, client.onPublish)
@@ -83,16 +92,20 @@ func (c *Client) Connect() {
 
 func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 
+	c.rpsCounterIncr()
+
 	message := &MessageReq{}
 	if err := json.Unmarshal(msg.Payload(), message); err != nil {
 		log.Error(err.Error())
 		return
 	}
 
+	c.avgStart()
 	resp, err := c.SendMessageToThread(message)
 	if err != nil {
 		log.Error(err.Error())
 	}
+	c.avgEnd()
 
 	// response
 	if cli.IsConnected() {
@@ -132,12 +145,12 @@ func (c *Client) UpdateThreads() {
 	c.Lock()
 	defer c.Unlock()
 
-	log.Debug("update thread list")
+	//log.Debug("update thread list")
 
 	deviceList := serial.DeviceList()
 
 	//remove threads
-	for k, _ := range c.pool {
+	for k := range c.pool {
 		var exist bool
 		for _, dev := range deviceList {
 			if dev == k {
@@ -161,13 +174,20 @@ func (c *Client) UpdateThreads() {
 		log.Debugf("Add thread to pool: %s", dev)
 		c.pool[dev] = NewThread(dev)
 	}
+
+	if len(c.pool) == 0 {
+		c.status = common.StatusBusy
+	}
 }
 
 func (c *Client) ping() {
-	if c.client != nil && (c.client.IsConnected() || c.client.IsConnectionOpen()) {
-		message := map[string]interface{}{
-			"status": "live",
-			"thread": len(c.pool),
+	if c.client != nil && (c.client.IsConnected()) {
+		message := &ClientStatusModel{
+			Status: c.status,
+			Thread: len(c.pool),
+			Rps:    c.rpsCounter.Rate(),
+			Min:    c.min,
+			Max:    c.max,
 		}
 		data, _ := json.Marshal(message)
 		c.client.Publish("/ping", data)
