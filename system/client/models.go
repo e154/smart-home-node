@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	. "github.com/e154/smart-home-node/common"
+	"time"
 )
 
 type MessageReq struct {
@@ -21,9 +22,10 @@ type MessageResp struct {
 }
 
 type ClientStatusModel struct {
-	Status ClientStatus `json:"status"`
-	Thread int          `json:"thread"`
-	Rps    int64        `json:"rps"`
-	Min    int64        `json:"min"`
-	Max    int64        `json:"max"`
+	Status    ClientStatus `json:"status"`
+	Thread    int          `json:"thread"`
+	Rps       int64        `json:"rps"`
+	Min       int64        `json:"min"`
+	Max       int64        `json:"max"`
+	StartedAt time.Time    `json:"started_at"`
 }

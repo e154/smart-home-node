@@ -14,6 +14,7 @@ import (
 	"github.com/e154/smart-home-node/system/cache"
 	"github.com/e154/smart-home-node/common"
 	"github.com/paulbellamy/ratecounter"
+	"github.com/e154/smart-home-node/system/command"
 )
 
 const (
@@ -33,6 +34,7 @@ type Client struct {
 	updatePinkTicker    *time.Ticker
 	status              common.ClientStatus
 	cache               *cache.Cache
+	startedAt           time.Time
 	sync.Mutex
 	pool Threads
 }
@@ -52,6 +54,7 @@ func NewClient(cfg *config.AppConfig,
 		pool:                make(Threads),
 		cache:               memCache,
 		status:              common.StatusEnabled,
+		startedAt:           time.Now(),
 		Stat: Stat{
 			rpsCounter: ratecounter.NewRateCounter(1 * time.Second),
 			avgRequest: ratecounter.NewAvgRateCounter(60 * time.Second),
@@ -101,23 +104,20 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 	}
 
 	c.avgStart()
-	resp, err := c.SendMessageToThread(message)
-	if err != nil {
-		log.Error(err.Error())
+	switch message.DeviceType {
+	case common.DevTypeCommand:
+		command.NewCommand(cli, message.Command)
+	case common.DevTypeSmartBus:
+		c.SendMessageToThread(cli, message)
+	default:
+		log.Warningf("unknown message device type: %s", message.DeviceType)
 	}
+
 	c.avgEnd()
 
-	// response
-	if cli.IsConnected() {
-		topic := fmt.Sprintf("/home/%s", c.cfg.Topic)
-		data, _ := json.Marshal(resp)
-		if token := cli.Publish(topic+"/resp", 0x0, false, data); token.Wait() && token.Error() != nil {
-			log.Error(token.Error().Error())
-		}
-	}
 }
 
-func (c *Client) SendMessageToThread(message *MessageReq) (resp *MessageResp, err error) {
+func (c *Client) SendMessageToThread(cli MQTT.Client, message *MessageReq) (err error) {
 
 	//поиск в кэше
 	cacheKey := c.cache.GetKey(fmt.Sprintf("%d_dev", message.DeviceId))
@@ -126,14 +126,24 @@ func (c *Client) SendMessageToThread(message *MessageReq) (resp *MessageResp, er
 		threadDev = c.cache.Get(cacheKey).(string)
 	}
 
+	var resp *MessageResp
 	if threadDev != "" {
-		resp, err = c.pool[threadDev].Send(message)
+		resp, err = c.pool[threadDev].Send(cli, message)
 		return
 	}
 
 	for threadDev, thread := range c.pool {
-		if resp, err = thread.Send(message); err == nil {
+		if resp, err = thread.Send(cli, message); err == nil {
 			c.cache.Put("node", cacheKey, threadDev)
+		}
+	}
+
+	// response
+	if cli.IsConnected() {
+		topic := fmt.Sprintf("/home/%s", c.cfg.Topic)
+		data, _ := json.Marshal(resp)
+		if token := cli.Publish(topic+"/resp", 0x0, false, data); token.Wait() && token.Error() != nil {
+			log.Error(token.Error().Error())
 		}
 	}
 
@@ -177,17 +187,20 @@ func (c *Client) UpdateThreads() {
 
 	if len(c.pool) == 0 {
 		c.status = common.StatusBusy
+	} else {
+		c.status = common.StatusEnabled
 	}
 }
 
 func (c *Client) ping() {
 	if c.client != nil && (c.client.IsConnected()) {
 		message := &ClientStatusModel{
-			Status: c.status,
-			Thread: len(c.pool),
-			Rps:    c.rpsCounter.Rate(),
-			Min:    c.min,
-			Max:    c.max,
+			Status:    c.status,
+			Thread:    len(c.pool),
+			Rps:       c.rpsCounter.Rate(),
+			Min:       c.min,
+			Max:       c.max,
+			StartedAt: c.startedAt,
 		}
 		data, _ := json.Marshal(message)
 		c.client.Publish("/ping", data)

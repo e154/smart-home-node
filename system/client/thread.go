@@ -5,6 +5,7 @@ import (
 	"github.com/e154/smart-home-node/common"
 	"github.com/e154/smart-home-node/system/smartbus"
 	"encoding/json"
+	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
 type Thread struct {
@@ -25,7 +26,7 @@ func NewThread(dev string) (thread *Thread) {
 	return
 }
 
-func (t *Thread) Send(message *MessageReq) (resp *MessageResp, err error) {
+func (t *Thread) Send(cli MQTT.Client, message *MessageReq) (resp *MessageResp, err error) {
 
 	t.Lock()
 	t.Busy = true

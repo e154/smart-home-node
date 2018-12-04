@@ -14,6 +14,7 @@ const (
 	DevTypeModBus   = DeviceType("modbus")
 	DevTypeZigbee   = DeviceType("zigbee")
 	DevTypeDefault  = DeviceType("default")
+	DevTypeCommand  = DeviceType("command")
 )
 
 type ThreadState string
