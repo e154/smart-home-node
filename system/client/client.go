@@ -35,13 +35,15 @@ type Client struct {
 	status              common.ClientStatus
 	cache               *cache.Cache
 	startedAt           time.Time
+	serialService       *serial.SerialService
 	sync.Mutex
 	pool Threads
 }
 
 func NewClient(cfg *config.AppConfig,
 	graceful *graceful_service.GracefulService,
-	qService *mqtt.Mqtt) *Client {
+	qService *mqtt.Mqtt,
+	serialService *serial.SerialService) *Client {
 
 	memCache := &cache.Cache{
 		Cachetime: 3600,
@@ -55,6 +57,7 @@ func NewClient(cfg *config.AppConfig,
 		cache:               memCache,
 		status:              common.StatusEnabled,
 		startedAt:           time.Now(),
+		serialService:       serialService,
 		Stat: Stat{
 			rpsCounter: ratecounter.NewRateCounter(1 * time.Second),
 			avgRequest: ratecounter.NewAvgRateCounter(60 * time.Second),
@@ -97,7 +100,7 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 
 	c.rpsCounterIncr()
 
-	message := &MessageReq{}
+	message := &common.MessageRequest{}
 	if err := json.Unmarshal(msg.Payload(), message); err != nil {
 		log.Error(err.Error())
 		return
@@ -106,9 +109,10 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 	c.avgStart()
 	switch message.DeviceType {
 	case common.DevTypeCommand:
-		command.NewCommand(cli, message.Command)
+		cmd := command.NewCommand(c.ResponseFunc(cli), message)
+		cmd.Exec()
 	case common.DevTypeSmartBus:
-		c.SendMessageToThread(cli, message)
+		c.SendMessageToThread(c.ResponseFunc(cli), message)
 	default:
 		log.Warningf("unknown message device type: %s", message.DeviceType)
 	}
@@ -117,7 +121,7 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 
 }
 
-func (c *Client) SendMessageToThread(cli MQTT.Client, message *MessageReq) (err error) {
+func (c *Client) SendMessageToThread(respFunc func(data []byte), message *common.MessageRequest) (err error) {
 
 	//поиск в кэше
 	cacheKey := c.cache.GetKey(fmt.Sprintf("%d_dev", message.DeviceId))
@@ -126,26 +130,20 @@ func (c *Client) SendMessageToThread(cli MQTT.Client, message *MessageReq) (err 
 		threadDev = c.cache.Get(cacheKey).(string)
 	}
 
-	var resp *MessageResp
+	var resp *common.MessageResponse
 	if threadDev != "" {
-		resp, err = c.pool[threadDev].Send(cli, message)
+		resp, err = c.pool[threadDev].Send(message)
 		return
 	}
 
 	for threadDev, thread := range c.pool {
-		if resp, err = thread.Send(cli, message); err == nil {
+		if resp, err = thread.Send(message); err == nil {
 			c.cache.Put("node", cacheKey, threadDev)
 		}
 	}
 
-	// response
-	if cli.IsConnected() {
-		topic := fmt.Sprintf("/home/%s", c.cfg.Topic)
-		data, _ := json.Marshal(resp)
-		if token := cli.Publish(topic+"/resp", 0x0, false, data); token.Wait() && token.Error() != nil {
-			log.Error(token.Error().Error())
-		}
-	}
+	data, _ := json.Marshal(resp)
+	respFunc(data)
 
 	return
 }
@@ -157,7 +155,7 @@ func (c *Client) UpdateThreads() {
 
 	//log.Debug("update thread list")
 
-	deviceList := serial.DeviceList()
+	deviceList := c.serialService.DeviceList()
 
 	//remove threads
 	for k := range c.pool {
@@ -194,7 +192,7 @@ func (c *Client) UpdateThreads() {
 
 func (c *Client) ping() {
 	if c.client != nil && (c.client.IsConnected()) {
-		message := &ClientStatusModel{
+		message := &common.ClientStatusModel{
 			Status:    c.status,
 			Thread:    len(c.pool),
 			Rps:       c.rpsCounter.Rate(),
@@ -204,5 +202,18 @@ func (c *Client) ping() {
 		}
 		data, _ := json.Marshal(message)
 		c.client.Publish("/ping", data)
+	}
+}
+
+func (c *Client) ResponseFunc(cli MQTT.Client) func(data []byte) {
+
+	return func(data []byte) {
+		// response
+		if cli.IsConnected() {
+			topic := fmt.Sprintf("/home/%s", c.cfg.Topic)
+			if token := cli.Publish(topic+"/resp", 0x0, false, data); token.Wait() && token.Error() != nil {
+				log.Error(token.Error().Error())
+			}
+		}
 	}
 }

@@ -1,11 +1,11 @@
 package smartbus
 
 import (
-	"github.com/e154/smart-home-node/common"
 	"github.com/e154/smart-home-node/system/serial"
 	"time"
 	"github.com/e154/smart-home-node/system/smartbus/driver"
 	"github.com/op/go-logging"
+	"github.com/e154/smart-home-node/models/devices"
 )
 
 var (
@@ -13,14 +13,14 @@ var (
 )
 
 type Smartbus struct {
-	params    *common.DevConfSmartBus
+	params    *devices.DevSmartBusConfig
 	deviceId  int64
 	dev       string
 	command   []byte
 	serialDev *serial.Serial
 }
 
-func NewSmartbus(deviceId int64, params *common.DevConfSmartBus, dev string, command []byte) *Smartbus {
+func NewSmartbus(deviceId int64, params *devices.DevSmartBusConfig, dev string, command []byte) *Smartbus {
 	return &Smartbus{
 		deviceId: deviceId,
 		params:   params,

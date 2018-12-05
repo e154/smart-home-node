@@ -5,7 +5,7 @@ import (
 	"github.com/e154/smart-home-node/common"
 	"github.com/e154/smart-home-node/system/smartbus"
 	"encoding/json"
-	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/e154/smart-home-node/models/devices"
 )
 
 type Thread struct {
@@ -26,7 +26,7 @@ func NewThread(dev string) (thread *Thread) {
 	return
 }
 
-func (t *Thread) Send(cli MQTT.Client, message *MessageReq) (resp *MessageResp, err error) {
+func (t *Thread) Send(message *common.MessageRequest) (resp *common.MessageResponse, err error) {
 
 	t.Lock()
 	t.Busy = true
@@ -37,7 +37,7 @@ func (t *Thread) Send(cli MQTT.Client, message *MessageReq) (resp *MessageResp, 
 
 	//debug.Println(message)
 
-	resp = &MessageResp{
+	resp = &common.MessageResponse{
 		DeviceId:   message.DeviceId,
 		DeviceType: message.DeviceType,
 	}
@@ -45,7 +45,7 @@ func (t *Thread) Send(cli MQTT.Client, message *MessageReq) (resp *MessageResp, 
 	switch message.DeviceType {
 	// smartbus line
 	case common.DevTypeSmartBus:
-		params := &common.DevConfSmartBus{}
+		params := &devices.DevSmartBusConfig{}
 		json.Unmarshal(message.Properties, params)
 		bus := smartbus.NewSmartbus(message.DeviceId, params, t.Dev, message.Command)
 		if _, err, _ = bus.Open(); err != nil {

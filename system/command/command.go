@@ -1,12 +1,10 @@
 package command
 
 import (
-	"strings"
-	"fmt"
-	"os/exec"
-	"bytes"
 	"github.com/op/go-logging"
-	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"encoding/json"
+	"github.com/e154/smart-home-node/models/devices"
+	"github.com/e154/smart-home-node/common"
 )
 
 var (
@@ -14,37 +12,57 @@ var (
 )
 
 type Command struct {
-	cli MQTT.Client
+	respFunc       func(data []byte)
+	name           string
+	args           []string
+	requestMessage *common.MessageRequest
 }
 
-func NewCommand(cli MQTT.Client, command []byte) *Command {
-	return &Command{cli: cli}
-}
+func NewCommand(respFunc func(data []byte), requestMessage *common.MessageRequest) (command *Command) {
 
-// IC.Execute "sh", "-c", "echo stdout; echo 1>&2 stderr"
-func (c *Command) ExecuteSync(name string, arg ...string) (r *Response) {
-
-	r = &Response{}
-
-	log.Infof("Execute [SYNC] command: %s %s", name, strings.Trim(fmt.Sprint(arg), "[]"))
-
-	// https://golang.org/pkg/os/exec/#example_Cmd_Start
-	cmd := exec.Command(name, arg...)
-	var stdout, stderr bytes.Buffer
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Start(); err != nil {
-		r.Err = err.Error()
-		return
+	request := &devices.DevCommandRequest{}
+	json.Unmarshal(requestMessage.Command, request)
+	command = &Command{
+		respFunc:       respFunc,
+		name:           request.Name,
+		args:           request.Args,
+		requestMessage: requestMessage,
 	}
-
-	if err := cmd.Wait(); err != nil {
-		r.Err = err.Error()
-		return
-	}
-
-	r.Out = strings.TrimSuffix(stdout.String(), "\n")
-	r.Err = strings.TrimSuffix(stderr.String(), "\n")
-
 	return
+}
+
+func (c *Command) Exec() *Command {
+	res := ExecuteSync(c.name, c.args...)
+	c.response(res)
+	return c
+}
+
+func (c Command) response(r *Response) {
+
+	respData := &devices.DevCommandResponse{
+		Result: r.Out,
+		BaseResponse: devices.BaseResponse{
+			Error: r.Err,
+		},
+	}
+
+	data, err := json.Marshal(respData)
+	if err != nil {
+		log.Error(err.Error())
+	}
+
+	response := &common.MessageResponse{
+		DeviceId:   c.requestMessage.DeviceId,
+		DeviceType: c.requestMessage.DeviceType,
+		Properties: c.requestMessage.Properties,
+		Response:   data,
+		Status:     "success",
+	}
+
+	if r.Err != "" || err != nil {
+		response.Status = "error"
+	}
+
+	responseData, _ := json.Marshal(response)
+	c.respFunc(responseData)
 }

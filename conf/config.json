@@ -7,5 +7,6 @@
   "mqtt_authenticator": "mockSuccess",
   "mqtt_topics_provider": "mem",
   "mqtt_ip": "127.0.0.1",
-  "mqtt_port": 1883
+  "mqtt_port": 1883,
+  "serial": ["tty.usbserial", "cu.wchusbserial", "tty.SLAB_USB", "ttyS", "ttyUSB"]
 }
