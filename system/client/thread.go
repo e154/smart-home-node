@@ -35,8 +35,6 @@ func (t *Thread) Send(message *common.MessageRequest) (resp *common.MessageRespo
 		t.Busy = false
 	}()
 
-	//debug.Println(message)
-
 	resp = &common.MessageResponse{
 		DeviceId:   message.DeviceId,
 		DeviceType: message.DeviceType,
@@ -47,21 +45,31 @@ func (t *Thread) Send(message *common.MessageRequest) (resp *common.MessageRespo
 	case common.DevTypeSmartBus:
 		params := &devices.DevSmartBusConfig{}
 		json.Unmarshal(message.Properties, params)
-		bus := smartbus.NewSmartbus(message.DeviceId, params, t.Dev, message.Command)
+		request := &devices.DevSmartBusRequest{}
+		if err = json.Unmarshal(message.Command, request); err != nil {
+			resp.Status = "error"
+			return
+		}
+		bus := smartbus.NewSmartbus(message.DeviceId, params, t.Dev, request.Command)
 		if _, err, _ = bus.Open(); err != nil {
 			resp.Status = "error"
 			err = nil
 			return
 		}
-		if resp.Response, err, _ = bus.Exec(); err != nil {
-			bus.Close()
+		var result []byte
+		if result, err, _ = bus.Exec(); err != nil {
 			resp.Status = "error"
 			err = nil
-			return
+		} else {
+			resp.Status = "success"
 		}
 		bus.Close()
 
-		//fmt.Println(resp.Response)
+		r := &devices.DevSmartBusResponse{
+			Result: result,
+		}
+		data, _ := json.Marshal(r)
+		resp.Response = data
 
 	default:
 		log.Errorf("unknown device type %s", message.DeviceType)

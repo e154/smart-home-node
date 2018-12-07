@@ -153,7 +153,7 @@ func (m *Smartbus) asciiTransmit(data []byte) (err error) {
 		return
 	}
 
-	log.Debugf("send -> %X, %v\r\n", m.trcBuff.Bytes(), data) //TODO comment
+	//log.Debugf("send -> %X, %v\r\n", m.trcBuff.Bytes(), data) //TODO comment
 
 	_, err = m.Serial.Port.Write(m.trcBuff.Bytes())
 	if err != nil {

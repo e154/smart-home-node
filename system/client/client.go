@@ -106,7 +106,7 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 		return
 	}
 
-	c.avgStart()
+	startTime := c.avgStart()
 	switch message.DeviceType {
 	case common.DevTypeCommand:
 		cmd := command.NewCommand(c.ResponseFunc(cli), message)
@@ -117,7 +117,7 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 		log.Warningf("unknown message device type: %s", message.DeviceType)
 	}
 
-	c.avgEnd()
+	c.avgEnd(startTime)
 
 }
 
@@ -133,12 +133,12 @@ func (c *Client) SendMessageToThread(respFunc func(data []byte), message *common
 	var resp *common.MessageResponse
 	if threadDev != "" {
 		resp, err = c.pool[threadDev].Send(message)
-		return
-	}
-
-	for threadDev, thread := range c.pool {
-		if resp, err = thread.Send(message); err == nil {
-			c.cache.Put("node", cacheKey, threadDev)
+	} else {
+		for threadDev, thread := range c.pool {
+			if resp, err = thread.Send(message); err == nil {
+				c.cache.Put("node", cacheKey, threadDev)
+				break
+			}
 		}
 	}
 

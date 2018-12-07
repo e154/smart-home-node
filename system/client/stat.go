@@ -10,19 +10,18 @@ type Stat struct {
 	max        int64
 	rpsCounter *ratecounter.RateCounter
 	avgRequest *ratecounter.AvgRateCounter
-	startTime  time.Time
 }
 
 func (c *Stat) rpsCounterIncr() {
 	c.rpsCounter.Incr(1)
 }
 
-func (c *Stat) avgStart() {
-	c.startTime = time.Now()
+func (c *Stat) avgStart() (time.Time) {
+	return time.Now()
 }
 
-func (c *Stat) avgEnd() {
-	total := time.Since(c.startTime).Nanoseconds()
+func (c *Stat) avgEnd(startTime time.Time) {
+	total := time.Since(startTime).Nanoseconds()
 	c.avgRequest.Incr(total)
 
 	switch {
