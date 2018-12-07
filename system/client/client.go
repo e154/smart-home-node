@@ -211,6 +211,7 @@ func (c *Client) ping() {
 func (c *Client) ResponseFunc(cli MQTT.Client) func(data []byte) {
 
 	return func(data []byte) {
+		fmt.Println(string(data))
 		// response
 		if cli.IsConnected() {
 			topic := fmt.Sprintf("/home/%s", c.cfg.Topic)

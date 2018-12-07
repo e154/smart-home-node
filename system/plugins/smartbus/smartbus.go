@@ -15,7 +15,7 @@ var (
 )
 
 type Smartbus struct {
-	params         *devices.DevSmartBusConfig
+	params *devices.DevSmartBusConfig
 
 	command        []byte
 	serialDev      *serial.Serial
@@ -67,7 +67,10 @@ func (s *Smartbus) Exec(dev string) (resp *common.MessageResponse, err error) {
 	resp = &common.MessageResponse{
 		DeviceId:   s.requestMessage.DeviceId,
 		DeviceType: s.requestMessage.DeviceType,
+		Status:     "success",
 	}
+
+	r := &devices.DevSmartBusResponse{}
 
 	request := &devices.DevSmartBusRequest{}
 	if err = json.Unmarshal(s.requestMessage.Command, request); err != nil {
@@ -88,16 +91,15 @@ func (s *Smartbus) Exec(dev string) (resp *common.MessageResponse, err error) {
 	command = append(command, request.Command...)
 
 	modbus := &driver.Smartbus{Serial: s.serialDev}
-	var result []byte
-	if result, err = modbus.Send(command); err != nil {
+	if r.Result, err = modbus.Send(command); err != nil {
 		//errcode = "MODBUS_LINE_ERROR"
 		log.Warningf("%s - %s\r\n", dev, err.Error())
 		//TODO remove
 		if err.Error() == "ILLEGAL_LRC" {
 			err = nil
 		} else {
-			s.Close()
-			return
+			r.Error = err.Error()
+			resp.Status = "error"
 		}
 	}
 
@@ -107,9 +109,6 @@ func (s *Smartbus) Exec(dev string) (resp *common.MessageResponse, err error) {
 	}
 	s.Close()
 
-	r := &devices.DevSmartBusResponse{
-		Result: result,
-	}
 	if resp.Response, err = json.Marshal(r); err != nil {
 		log.Error(err.Error())
 	}
