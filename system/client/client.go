@@ -14,7 +14,8 @@ import (
 	"github.com/e154/smart-home-node/system/cache"
 	"github.com/e154/smart-home-node/common"
 	"github.com/paulbellamy/ratecounter"
-	"github.com/e154/smart-home-node/system/command"
+	"github.com/e154/smart-home-node/system/plugins/command"
+	"github.com/e154/smart-home-node/system/plugins/smartbus"
 )
 
 const (
@@ -108,11 +109,14 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 
 	startTime := c.avgStart()
 	switch message.DeviceType {
+	// command plugin
 	case common.DevTypeCommand:
 		cmd := command.NewCommand(c.ResponseFunc(cli), message)
 		cmd.Exec()
+	// smartbus plugin
 	case common.DevTypeSmartBus:
-		c.SendMessageToThread(c.ResponseFunc(cli), message)
+		cmd := smartbus.NewSmartbus(c.ResponseFunc(cli), message)
+		c.SendMessageToThread(cmd)
 	default:
 		log.Warningf("unknown message device type: %s", message.DeviceType)
 	}
@@ -121,10 +125,10 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 
 }
 
-func (c *Client) SendMessageToThread(respFunc func(data []byte), message *common.MessageRequest) (err error) {
+func (c *Client) SendMessageToThread(item common.ThreadCaller) (err error) {
 
 	//поиск в кэше
-	cacheKey := c.cache.GetKey(fmt.Sprintf("%d_dev", message.DeviceId))
+	cacheKey := c.cache.GetKey(fmt.Sprintf("%d_dev", item.DeviceId()))
 	var threadDev string
 	if c.cache.IsExist(cacheKey) {
 		threadDev = c.cache.Get(cacheKey).(string)
@@ -132,18 +136,17 @@ func (c *Client) SendMessageToThread(respFunc func(data []byte), message *common
 
 	var resp *common.MessageResponse
 	if threadDev != "" {
-		resp, err = c.pool[threadDev].Send(message)
+		resp, err = c.pool[threadDev].Send(item)
 	} else {
 		for threadDev, thread := range c.pool {
-			if resp, err = thread.Send(message); err == nil {
+			if resp, err = thread.Send(item); err == nil {
 				c.cache.Put("node", cacheKey, threadDev)
 				break
 			}
 		}
 	}
 
-	data, _ := json.Marshal(resp)
-	respFunc(data)
+	item.Send(resp)
 
 	return
 }

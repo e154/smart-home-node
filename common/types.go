@@ -30,8 +30,14 @@ const (
 type ClientStatus string
 
 const (
-	StatusEnabled = ClientStatus("enabled")
+	StatusEnabled  = ClientStatus("enabled")
 	StatusDisabled = ClientStatus("disabled")
-	StatusError = ClientStatus("error")
-	StatusBusy = ClientStatus("busy")
+	StatusError    = ClientStatus("error")
+	StatusBusy     = ClientStatus("busy")
 )
+
+type ThreadCaller interface {
+	Exec(dev string) (resp *MessageResponse, err error)
+	Send(data interface{})
+	DeviceId() int64
+}
