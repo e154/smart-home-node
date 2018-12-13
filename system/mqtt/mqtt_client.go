@@ -79,7 +79,6 @@ func (c *Client) Connect() (err error) {
 
 loop:
 	if token := c.client.Connect(); token.Wait() && token.Error() != nil {
-		log.Error(token.Error().Error())
 		time.Sleep(time.Second)
 		goto loop
 		return

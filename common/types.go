@@ -1,5 +1,7 @@
 package common
 
+import "github.com/e154/smart-home-node/system/serial"
+
 type StatusType string
 
 const (
@@ -37,7 +39,17 @@ const (
 )
 
 type ThreadCaller interface {
-	Exec(dev string) (resp *MessageResponse, err error)
+	Exec(t Thread) (resp *MessageResponse, err error)
 	Send(data interface{})
 	DeviceId() int64
+}
+
+type Thread interface {
+	SetParams(baud, timeout, stopBits int) (err error)
+	Open() (err error)
+	Close()
+	Restart()
+	GetSerial() *serial.Serial
+	Device() string
+	SetErr()
 }

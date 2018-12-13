@@ -3,7 +3,6 @@ package smartbus
 import (
 	"time"
 	"github.com/op/go-logging"
-	"github.com/e154/smart-home-node/system/serial"
 	"github.com/e154/smart-home-node/models/devices"
 	"github.com/e154/smart-home-node/common"
 	"encoding/json"
@@ -18,7 +17,6 @@ type Smartbus struct {
 	params *devices.DevSmartBusConfig
 
 	command        []byte
-	serialDev      *serial.Serial
 	respFunc       func(data []byte)
 	requestMessage *common.MessageRequest
 }
@@ -38,31 +36,7 @@ func NewSmartbus(respFunc func(data []byte), requestMessage *common.MessageReque
 	}
 }
 
-func (s *Smartbus) Open(dev string) (err error) {
-
-	s.serialDev = &serial.Serial{
-		Dev:         dev,
-		Baud:        s.params.Baud,
-		ReadTimeout: time.Duration(s.params.Timeout),
-		StopBits:    s.params.StopBits,
-	}
-
-	if _, err = s.serialDev.Open(); err != nil {
-		log.Warningf("%s - %s\r\n", dev, err.Error())
-		return
-	}
-
-	return
-}
-
-func (s *Smartbus) Close() () {
-	if s.serialDev != nil {
-		s.serialDev.Close()
-	}
-	return
-}
-
-func (s *Smartbus) Exec(dev string) (resp *common.MessageResponse, err error) {
+func (s *Smartbus) Exec(t common.Thread) (resp *common.MessageResponse, err error) {
 
 	resp = &common.MessageResponse{
 		DeviceId:   s.requestMessage.DeviceId,
@@ -79,7 +53,7 @@ func (s *Smartbus) Exec(dev string) (resp *common.MessageResponse, err error) {
 	}
 
 	// open
-	if err = s.Open(dev); err != nil {
+	if err = t.SetParams(s.params.Baud, s.params.Timeout, s.params.StopBits); err != nil {
 		resp.Status = "error"
 		err = nil
 		return
@@ -90,10 +64,12 @@ func (s *Smartbus) Exec(dev string) (resp *common.MessageResponse, err error) {
 	command = append(command, byte(s.params.Device))
 	command = append(command, request.Command...)
 
-	modbus := &driver.Smartbus{Serial: s.serialDev}
+	modbus := &driver.Smartbus{Serial: t.GetSerial()}
 	if r.Result, err = modbus.Send(command); err != nil {
+		t.SetErr()
+
 		//errcode = "MODBUS_LINE_ERROR"
-		log.Warningf("%s - %s\r\n", dev, err.Error())
+		log.Warningf("%s - %s\r\n", t.Device(), err.Error())
 		//TODO remove
 		if err.Error() == "ILLEGAL_LRC" {
 			err = nil
@@ -107,7 +83,6 @@ func (s *Smartbus) Exec(dev string) (resp *common.MessageResponse, err error) {
 	if s.params.Sleep != 0 {
 		time.Sleep(time.Millisecond * time.Duration(s.params.Sleep))
 	}
-	s.Close()
 
 	if resp.Response, err = json.Marshal(r); err != nil {
 		log.Error(err.Error())

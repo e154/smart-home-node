@@ -136,10 +136,10 @@ func (c *Client) SendMessageToThread(item common.ThreadCaller) (err error) {
 
 	var resp *common.MessageResponse
 	if threadDev != "" {
-		resp, err = c.pool[threadDev].Send(item)
+		resp, err = c.pool[threadDev].Exec(item)
 	} else {
 		for threadDev, thread := range c.pool {
-			if resp, err = thread.Send(item); err == nil {
+			if resp, err = thread.Exec(item); err == nil {
 				c.cache.Put("node", cacheKey, threadDev)
 				break
 			}
