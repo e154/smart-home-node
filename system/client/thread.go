@@ -15,7 +15,9 @@ type Thread struct {
 	baud      int
 	timeout   int64
 	stopBits  int
-	errors int
+	errors    int
+	conn      interface{}
+	Active    bool
 }
 
 type Threads map[string]*Thread
@@ -23,8 +25,9 @@ type Threads map[string]*Thread
 func NewThread(dev string) (thread *Thread) {
 
 	thread = &Thread{
-		Dev:  dev,
-		Busy: false,
+		Dev:    dev,
+		Busy:   false,
+		Active: true,
 	}
 
 	return
@@ -112,4 +115,12 @@ func (t *Thread) SetErr() {
 	if t.errors > 30 {
 		t.Restart()
 	}
+}
+
+func (t *Thread) SetCon(conn interface{}) {
+	t.conn = conn
+}
+
+func (t *Thread) GetCon() interface{} {
+	return t.conn
 }

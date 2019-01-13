@@ -16,6 +16,7 @@ import (
 	"github.com/paulbellamy/ratecounter"
 	"github.com/e154/smart-home-node/system/plugins/command"
 	"github.com/e154/smart-home-node/system/plugins/smartbus"
+	"github.com/e154/smart-home-node/system/plugins/modbus"
 )
 
 const (
@@ -116,6 +117,10 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 	// smartbus plugin
 	case common.DevTypeSmartBus:
 		cmd := smartbus.NewSmartbus(c.ResponseFunc(cli), message)
+		c.SendMessageToThread(cmd)
+	// modbus
+	case common.DevTypeModBus:
+		cmd := modbus.NewModbus(c.ResponseFunc(cli), message)
 		c.SendMessageToThread(cmd)
 	default:
 		log.Warningf("unknown message device type: %s", message.DeviceType)

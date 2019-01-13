@@ -52,4 +52,6 @@ type Thread interface {
 	GetSerial() *serial.Serial
 	Device() string
 	SetErr()
+	SetCon(conn interface{})
+	GetCon() interface{}
 }

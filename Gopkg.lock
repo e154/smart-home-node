@@ -18,6 +18,14 @@
   revision = "2a77d83c837dd57108d16384693194dacf709232"
 
 [[projects]]
+  branch = "v2"
+  digest = "1:6bbb1a24cba5f207f5fb907d0529844c861614431ed984515420f7006c72c07d"
+  name = "github.com/e154/smart-home"
+  packages = ["system/validation"]
+  pruneopts = "UT"
+  revision = "a1c93ce276104984eafc23fb1822118f0c9dc46b"
+
+[[projects]]
   digest = "1:184008c955d6a3226b700c13ed0e875a7a051a759618f9bccba9b5c99f17faa5"
   name = "github.com/eclipse/paho.mqtt.golang"
   packages = [
@@ -27,6 +35,22 @@
   pruneopts = "UT"
   revision = "36d01c2b4cbeb3d2a12063e4880ce30800af9560"
   version = "v1.1.1"
+
+[[projects]]
+  digest = "1:aa43a01d4dd8f0e4f6fe5093bf8942bae94a67b654c1aa06e44e73ac802ce7e7"
+  name = "github.com/goburrow/modbus"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "606c02f4eef527a1d4cf7d8733d5fd7ba34f91d8"
+  version = "v0.1.0"
+
+[[projects]]
+  digest = "1:55b9bfea531b22ab4cb06aafad9e3faa15ee92b3f9c46625cf9ca445b3ccac7f"
+  name = "github.com/goburrow/serial"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "5efbe925ecf714f8ba147bf2226f2e7afc7111bc"
+  version = "v0.1.0"
 
 [[projects]]
   digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
@@ -159,7 +183,9 @@
   input-imports = [
     "github.com/astaxie/beego/cache",
     "github.com/e154/serial",
+    "github.com/e154/smart-home/system/validation",
     "github.com/eclipse/paho.mqtt.golang",
+    "github.com/goburrow/modbus",
     "github.com/olivere/elastic",
     "github.com/op/go-logging",
     "github.com/paulbellamy/ratecounter",
