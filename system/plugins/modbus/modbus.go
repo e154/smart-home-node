@@ -3,20 +3,19 @@ package modbus
 import (
 	"github.com/e154/smart-home-node/common"
 	"encoding/json"
-	"github.com/e154/smart-home-node/models/devices"
+	. "github.com/e154/smart-home-node/models/devices"
 	"github.com/op/go-logging"
 	"github.com/goburrow/modbus"
 	"time"
 	"encoding/binary"
-	"fmt"
 )
 
 var (
-	log = logging.MustGetLogger("smartbus")
+	log = logging.MustGetLogger("modbus")
 )
 
 type Modbus struct {
-	params *devices.DevModBusConfig
+	params *DevModBusConfig
 
 	command        []byte
 	respFunc       func(data []byte)
@@ -25,7 +24,7 @@ type Modbus struct {
 
 func NewModbus(respFunc func(data []byte), requestMessage *common.MessageRequest) *Modbus {
 
-	params := &devices.DevModBusConfig{}
+	params := &DevModBusConfig{}
 	if err := json.Unmarshal(requestMessage.Properties, params); err != nil {
 		log.Error(err.Error())
 	}
@@ -53,9 +52,9 @@ func (s *Modbus) Exec(t common.Thread) (resp *common.MessageResponse, err error)
 		Status:     "success",
 	}
 
-	r := &devices.DevModBusResponse{}
+	r := &DevModBusResponse{}
 
-	request := &devices.DevModBusRequest{}
+	request := &DevModBusRequest{}
 	if err = json.Unmarshal(s.requestMessage.Command, request); err != nil {
 		resp.Status = "error"
 		return
@@ -92,14 +91,32 @@ LOOP:
 	cli := modbus.NewClient(handler)
 	var results []byte
 	switch request.Function {
-	case devices.ReadHoldingRegisters:
-		if results, err = cli.ReadHoldingRegisters(request.Address, request.Count); err != nil {
-			resp.Status = "error"
-			log.Error(err.Error())
-			return
-		}
+	case ReadInputRegisters:
+		results, err = cli.ReadInputRegisters(request.Address, request.Count)
+	case ReadHoldingRegisters:
+		results, err = cli.ReadHoldingRegisters(request.Address, request.Count)
+	case WriteSingleRegister:
+		// count as value
+		results, err = cli.WriteSingleRegister(request.Address, request.Count)
+	case WriteMultipleRegisters:
+		results, err = cli.WriteMultipleRegisters(request.Address, request.Count, request.Command)
+	case ReadCoils:
+		results, err = cli.ReadCoils(request.Address, request.Count)
+	case ReadDiscreteInputs:
+		results, err = cli.ReadDiscreteInputs(request.Address, request.Count)
+	case WriteSingleCoil:
+		// count as value
+		results, err = cli.WriteSingleCoil(request.Address, request.Count)
+	case WriteMultipleCoils:
+		results, err = cli.WriteMultipleCoils(request.Address, request.Count, request.Command)
 	default:
 		log.Errorf("unknown function %s", request.Function)
+	}
+
+	if err != nil {
+		resp.Status = "error"
+		log.Error(err.Error())
+		return
 	}
 
 	k := 0
@@ -133,8 +150,6 @@ func (s *Modbus) DeviceId() int64 {
 }
 
 func (s *Modbus) Connect(device string) (handler *modbus.RTUClientHandler, err error) {
-
-	fmt.Println("connect")
 
 	handler = modbus.NewRTUClientHandler(device)
 	handler.BaudRate = s.params.Baud
