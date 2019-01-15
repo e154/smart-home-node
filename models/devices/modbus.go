@@ -25,10 +25,10 @@ type DevModBusConfig struct {
 }
 
 type DevModBusRequest struct {
-	Function string `json:"function"`
-	Address  uint16 `json:"address"`
-	Count    uint16 `json:"count"`
-	Command  []byte `json:"command"`
+	Function string   `json:"function"`
+	Address  uint16   `json:"address"`
+	Count    uint16   `json:"count"`
+	Command  []uint16 `json:"command"`
 }
 
 type DevModBusResponse struct {

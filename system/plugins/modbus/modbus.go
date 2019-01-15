@@ -8,6 +8,7 @@ import (
 	"github.com/goburrow/modbus"
 	"time"
 	"encoding/binary"
+	"fmt"
 )
 
 var (
@@ -61,7 +62,8 @@ func (s *Modbus) Exec(t common.Thread) (resp *common.MessageResponse, err error)
 	}
 
 	//debug.Println(s.params)
-	//debug.Println(t.Device())
+	fmt.Println("device ", t.Device())
+
 	con := t.GetCon()
 LOOP:
 	var handler *modbus.RTUClientHandler
@@ -88,6 +90,14 @@ LOOP:
 
 	time.Sleep(time.Millisecond * 10)
 
+	// set value
+	value := make([]byte, 0)
+	v := make([]byte, 2)
+	for _, item := range request.Command {
+		binary.BigEndian.PutUint16(v, item)
+		value = append(value, v...)
+	}
+
 	cli := modbus.NewClient(handler)
 	var results []byte
 	switch request.Function {
@@ -99,7 +109,7 @@ LOOP:
 		// count as value
 		results, err = cli.WriteSingleRegister(request.Address, request.Count)
 	case WriteMultipleRegisters:
-		results, err = cli.WriteMultipleRegisters(request.Address, request.Count, request.Command)
+		results, err = cli.WriteMultipleRegisters(request.Address, request.Count, value)
 	case ReadCoils:
 		results, err = cli.ReadCoils(request.Address, request.Count)
 	case ReadDiscreteInputs:
@@ -108,7 +118,7 @@ LOOP:
 		// count as value
 		results, err = cli.WriteSingleCoil(request.Address, request.Count)
 	case WriteMultipleCoils:
-		results, err = cli.WriteMultipleCoils(request.Address, request.Count, request.Command)
+		results, err = cli.WriteMultipleCoils(request.Address, request.Count, value)
 	default:
 		log.Errorf("unknown function %s", request.Function)
 	}
