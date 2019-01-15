@@ -8,7 +8,6 @@ import (
 	"github.com/goburrow/modbus"
 	"time"
 	"encoding/binary"
-	"fmt"
 )
 
 var (
@@ -47,6 +46,8 @@ func (s *Modbus) Exec(t common.Thread) (resp *common.MessageResponse, err error)
 	//	fmt.Println("exit ----->", total)
 	//}()
 
+	var firstTime bool
+
 	resp = &common.MessageResponse{
 		DeviceId:   s.requestMessage.DeviceId,
 		DeviceType: s.requestMessage.DeviceType,
@@ -62,12 +63,14 @@ func (s *Modbus) Exec(t common.Thread) (resp *common.MessageResponse, err error)
 	}
 
 	//debug.Println(s.params)
-	fmt.Println("device ", t.Device())
+	//fmt.Println("device ", t.Device())
 
 	con := t.GetCon()
-LOOP:
 	var handler *modbus.RTUClientHandler
+
+LOOP:
 	if con == nil {
+		firstTime = true
 		if handler, err = s.Connect(t.Device()); err != nil {
 			resp.Status = "error"
 			return
@@ -83,12 +86,9 @@ LOOP:
 			log.Errorf("unknown con type %v", v)
 			con = nil
 			goto LOOP
-			return
 		}
 		s.Check(handler)
 	}
-
-	time.Sleep(time.Millisecond * 10)
 
 	// set value
 	value := make([]byte, 0)
@@ -125,8 +125,12 @@ LOOP:
 
 	if err != nil {
 		resp.Status = "error"
-		log.Error(err.Error())
-		return
+		//log.Error(err.Error())
+		r.Error = err.Error()
+		if firstTime {
+			handler.Close()
+			t.SetCon(nil)
+		}
 	}
 
 	k := 0
@@ -143,9 +147,7 @@ LOOP:
 	//fmt.Println(r.Result)
 	//fmt.Println("---")
 
-	if resp.Response, err = json.Marshal(r); err != nil {
-		log.Error(err.Error())
-	}
+	resp.Response, _ = json.Marshal(r)
 
 	return
 }
@@ -179,6 +181,8 @@ func (s *Modbus) Connect(device string) (handler *modbus.RTUClientHandler, err e
 	//	fmt.Println("close handler")
 	//	handler.Close()
 	//}()
+
+	time.Sleep(time.Millisecond * 10)
 
 	return
 }

@@ -132,6 +132,18 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 
 func (c *Client) SendMessageToThread(item common.ThreadCaller) (err error) {
 
+	var activeThreads int
+	for _, thread := range c.pool {
+		if thread.Active {
+			activeThreads++
+		}
+	}
+
+	if activeThreads == 0 {
+		return
+	}
+
+LOOP:
 	//поиск в кэше
 	cacheKey := c.cache.GetKey(fmt.Sprintf("%d_dev", item.DeviceId()))
 	var threadDev string
@@ -141,14 +153,29 @@ func (c *Client) SendMessageToThread(item common.ThreadCaller) (err error) {
 
 	var resp *common.MessageResponse
 	if threadDev != "" {
-		resp, err = c.pool[threadDev].Exec(item)
+		if c.pool[threadDev].Active {
+			if resp, err = c.pool[threadDev].Exec(item); err != nil {
+				c.cache.Delete(cacheKey)
+				time.Sleep(100 * time.Millisecond)
+			}
+		} else {
+			c.cache.Delete(cacheKey)
+			goto LOOP
+		}
 	} else {
 		for threadDev, thread := range c.pool {
+			if !thread.Active {
+				continue
+			}
 			if resp, err = thread.Exec(item); err == nil {
 				c.cache.Put("node", cacheKey, threadDev)
 				break
 			}
 		}
+	}
+
+	if err != nil {
+		return
 	}
 
 	item.Send(resp)
@@ -166,7 +193,11 @@ func (c *Client) UpdateThreads() {
 	deviceList := c.serialService.DeviceList()
 
 	//remove threads
-	for k := range c.pool {
+	for k, thread := range c.pool {
+		if !thread.Active {
+			continue
+		}
+
 		var exist bool
 		for _, dev := range deviceList {
 			if dev == k {
@@ -178,20 +209,35 @@ func (c *Client) UpdateThreads() {
 		}
 
 		log.Debugf("Remove thread from pool: %s", k)
-		delete(c.pool, k)
+		thread.Disable()
+		c.cache.ClearGroup("node")
+		//delete(c.pool, k)
 	}
 
 	//add threads
 	for _, dev := range deviceList {
-		if _, ok := c.pool[dev]; ok {
+		if thread, ok := c.pool[dev]; ok {
+			if !thread.Active {
+				log.Debugf("Add thread to pool: %s", dev)
+				thread.Enable()
+			}
 			continue
 		}
 
 		log.Debugf("Add thread to pool: %s", dev)
 		c.pool[dev] = NewThread(dev)
+		c.cache.ClearGroup("node")
 	}
 
-	if len(c.pool) == 0 {
+	// check active threads
+	var activeThreads int
+	for _, thread := range c.pool {
+		if thread.Active {
+			activeThreads++
+		}
+	}
+
+	if activeThreads == 0 {
 		c.status = common.StatusBusy
 	} else {
 		c.status = common.StatusEnabled
@@ -199,10 +245,17 @@ func (c *Client) UpdateThreads() {
 }
 
 func (c *Client) ping() {
+	var activeThreads int
+	for _, thread := range c.pool {
+		if thread.Active {
+			activeThreads++
+		}
+	}
+
 	if c.client != nil && (c.client.IsConnected()) {
 		message := &common.ClientStatusModel{
 			Status:    c.status,
-			Thread:    len(c.pool),
+			Thread:    activeThreads,
 			Rps:       c.rpsCounter.Rate(),
 			Min:       c.min,
 			Max:       c.max,

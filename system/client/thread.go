@@ -18,6 +18,7 @@ type Thread struct {
 	errors    int
 	conn      interface{}
 	Active    bool
+	blockList []int64
 }
 
 type Threads map[string]*Thread
@@ -25,9 +26,10 @@ type Threads map[string]*Thread
 func NewThread(dev string) (thread *Thread) {
 
 	thread = &Thread{
-		Dev:    dev,
-		Busy:   false,
-		Active: true,
+		Dev:       dev,
+		Busy:      false,
+		Active:    true,
+		blockList: make([]int64, 0),
 	}
 
 	return
@@ -97,6 +99,7 @@ func (t *Thread) Close() {
 	return
 }
 
+//DEPRECATED
 func (t *Thread) Restart() {
 	t.Close()
 	t.Open()
@@ -123,4 +126,15 @@ func (t *Thread) SetCon(conn interface{}) {
 
 func (t *Thread) GetCon() interface{} {
 	return t.conn
+}
+
+func (t *Thread) Disable() {
+	t.Active = false
+	t.errors = 0
+	t.conn = nil
+	t.blockList = make([]int64, 0)
+}
+
+func (t *Thread) Enable() {
+	t.Active = true
 }

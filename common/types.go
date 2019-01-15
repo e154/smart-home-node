@@ -45,8 +45,11 @@ type ThreadCaller interface {
 }
 
 type Thread interface {
+	//DEPRECATED
 	SetParams(baud, timeout, stopBits int) (err error)
+	//DEPRECATED
 	Open() (err error)
+	//DEPRECATED
 	Close()
 	Restart()
 	GetSerial() *serial.Serial
