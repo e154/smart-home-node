@@ -156,7 +156,6 @@ LOOP:
 		if c.pool[threadDev].Active {
 			if resp, err = c.pool[threadDev].Exec(item); err != nil {
 				c.cache.Delete(cacheKey)
-				time.Sleep(100 * time.Millisecond)
 			}
 		} else {
 			c.cache.Delete(cacheKey)

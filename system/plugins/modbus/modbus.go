@@ -125,9 +125,10 @@ LOOP:
 
 	if err != nil {
 		resp.Status = "error"
-		//log.Error(err.Error())
+		log.Error(err.Error())
 		r.Error = err.Error()
 		if firstTime {
+			//fmt.Println("clear handler", t.Device())
 			handler.Close()
 			t.SetCon(nil)
 		}
@@ -182,7 +183,7 @@ func (s *Modbus) Connect(device string) (handler *modbus.RTUClientHandler, err e
 	//	handler.Close()
 	//}()
 
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond * 100)
 
 	return
 }
