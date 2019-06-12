@@ -4,7 +4,6 @@ import (
 	"github.com/op/go-logging"
 	"github.com/surgemq/surgemq/service"
 	"github.com/e154/smart-home-node/system/graceful_service"
-	"fmt"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -44,24 +43,6 @@ func (m *Mqtt) Shutdown() {
 	}
 
 	log.Info("Server exiting")
-}
-
-func (m *Mqtt) runServer() {
-
-	// Create a new server
-	m.server = &service.Server{
-		KeepAlive:        m.cfg.SrvKeepAlive,
-		ConnectTimeout:   m.cfg.SrvConnectTimeout,
-		SessionsProvider: m.cfg.SrvSessionsProvider,
-		Authenticator:    m.cfg.SrvAuthenticator,
-		TopicsProvider:   m.cfg.SrvTopicsProvider,
-	}
-
-	log.Infof("Serving server at tcp://[::]:%d", m.cfg.SrvPort)
-
-	if err := m.server.ListenAndServe(fmt.Sprintf("tcp://:%d", m.cfg.SrvPort)); err != nil {
-		log.Error(err.Error())
-	}
 }
 
 func (m *Mqtt) NewClient(topic string,

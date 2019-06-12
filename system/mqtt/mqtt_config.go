@@ -8,7 +8,8 @@ type MqttConfig struct {
 	SrvKeepAlive        int
 	SrvConnectTimeout   int
 	SrvSessionsProvider string
-	SrvAuthenticator    string
+	MqttUsername        string
+	MqttPassword        string
 	SrvTopicsProvider   string
 	SrvPort             int
 	SrvIp               string
@@ -19,7 +20,8 @@ func NewMqttConfig(cfg *config.AppConfig) *MqttConfig {
 		SrvKeepAlive:        cfg.MqttKeepAlive,
 		SrvConnectTimeout:   cfg.MqttConnectTimeout,
 		SrvSessionsProvider: cfg.MqttSessionsProvider,
-		SrvAuthenticator:    cfg.MqttAuthenticator,
+		MqttUsername:        cfg.MqttUsername,
+		MqttPassword:        cfg.MqttPassword,
 		SrvTopicsProvider:   cfg.MqttTopicsProvider,
 		SrvPort:             cfg.MqttPort,
 		SrvIp:               cfg.MqttIp,

@@ -6,7 +6,8 @@ type AppConfig struct {
 	MqttKeepAlive        int      `json:"mqtt_keep_alive"`
 	MqttConnectTimeout   int      `json:"mqtt_connect_timeout"`
 	MqttSessionsProvider string   `json:"mqtt_sessions_provider"`
-	MqttAuthenticator    string   `json:"mqtt_authenticator"`
+	MqttUsername         string   `json:"mqtt_username"`
+	MqttPassword         string   `json:"mqtt_password"`
 	MqttTopicsProvider   string   `json:"mqtt_topics_provider"`
 	MqttIp               string   `json:"mqtt_ip"`
 	MqttPort             int      `json:"mqtt_port"`
