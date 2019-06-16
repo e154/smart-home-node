@@ -82,23 +82,19 @@ __init() {
 
     mkdir -p ${TMP_DIR}
     cd ${ROOT}
-    gvt rebuild
+    dep esnure
 }
 
 __clean() {
 
-    rm -rf ${ROOT}/vendor/bin
-    rm -rf ${ROOT}/vendor/pkg
-    rm -rf ${ROOT}/vendor/src
+    rm -rf ${ROOT}/vendor/*
     rm -rf ${TMP_DIR}
 }
 
 __build() {
 
-    # build
     cd ${TMP_DIR}
 
-    #BRANCH="$(git rev-parse --abbrev-ref HEAD)"
     BRANCH="$(git name-rev --name-only HEAD)"
 
     if [[ $BRANCH == *"tags/"* ]]; then
@@ -112,11 +108,7 @@ __build() {
 
     xgo --out=${EXEC} --branch=${BRANCH} --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
 
-    # copy conf
     cp -r ${ROOT}/conf ${TMP_DIR}
-
-    # etc
-#    cp -r ${ROOT}/examples ${TMP_DIR}
     cp ${ROOT}/LICENSE ${TMP_DIR}
     cp ${ROOT}/README.md ${TMP_DIR}
     cp ${ROOT}/contributors.txt ${TMP_DIR}
@@ -130,8 +122,6 @@ __build() {
 __help() {
   cat <<EOF
 Usage: travis.sh [options]
-
-Bootstrap Debian 8.0 host
 
 OPTIONS:
 
