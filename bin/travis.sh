@@ -82,7 +82,7 @@ __init() {
 
     mkdir -p ${TMP_DIR}
     cd ${ROOT}
-    dep esnure
+    dep ensure
 }
 
 __clean() {
