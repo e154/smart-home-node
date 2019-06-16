@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	. "github.com/e154/smart-home-node/models/devices"
 	"github.com/op/go-logging"
-	"github.com/goburrow/modbus"
+	"github.com/e154/smart-home-node/system/plugins/modbus/driver"
 	"time"
 	"encoding/binary"
 )

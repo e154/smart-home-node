@@ -57,7 +57,3 @@
 [[constraint]]
   name = "github.com/paulbellamy/ratecounter"
   version = "0.2.0"
-
-[[constraint]]
-  name = "github.com/goburrow/modbus"
-  version = "0.1.0"
