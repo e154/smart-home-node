@@ -11,7 +11,7 @@ services:
   - docker
 
 before_install:
-  - go get github.com/FiloSottile/gvt
+  - go get -u github.com/golang/dep/cmd/dep
   - go get github.com/mattn/goveralls
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/karalabe/xgo
@@ -27,14 +27,17 @@ script:
 
 deploy:
   provider: releases
-  api_key:
-    secure: gcRudQPYa9eK4hbSauoR4YME34v4TBKZy/DutR+UUAJdKWl+EEK+armuqtgmiyzEmp0SPsv1bxB+It6jgmw3BC4vdY59I/jwaR1zRfBQkO4IGf6RajFAKEILkdfWPWkjGlXhLgOrfJ4M3oHUq4xl8kE402KptWCZWPARU1/gMluFKZUgpMShuT/DWRPhifqRvJol0xXSzrRVP18NKMyydoe2MmnQDZUINES05K/eAiQJJktqHp7HHiHc8B6Y5ksybTZ8b199D0PAdulaSPIa640QPE1sPZauq8nouo/2MSQOEN5tIx9Hw20fv8rlAKlA8EQR6DEea0OljFqJniiS5JA7FRJYUnMo9WptvaeLSlWvc3Z9G2FAg56DNbezTh29AQaxq8ZawlHSQP3WzP4tn4ESDYT1ITOqLROYG2GPNwEJEiEXhf29h1hfz+FB5dlf2Fen+Zo0MtxnsnvCsB2ebDm6NOZMyuWAFjwqJZ37RWKybVVC/PGDDvQnZT6D57l/mDDC7/2F1RlBlhcC3pIpbAEQcNCYujQHxWodP8It+QMvt7k57grXW/PXnbWhMskvput7RrtqnxuOoMJ+7eGlwL54ii90YdWw72dBXXWTj9yfkHnEjP8GPbr9nMZ+oNFi8CSC4pBJTUFpKmfkkzBwbFiNdYTM7KDyQ/MbKP48ATU=
+  api_key: $GITHUB_OAUTH_TOKEN
   file: $HOME/smart-home-node.tar.gz
   skip_cleanup: true
   on:
     tags: true
     branch: master
     repo: e154/smart-home-node
+  branches:
+    only:
+      - master
+      - /^v\d+(\.\d+)+$/
 
 notifications:
   email:
