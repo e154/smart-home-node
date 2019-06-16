@@ -5,7 +5,8 @@ Smart home node
 [Configurator](https://github.com/e154/smart-home-configurator/) |
 [Server](https://github.com/e154/smart-home/) |
 [Development Tools](https://github.com/e154/smart-home-tools/) |
-[Smart home Socket](https://github.com/e154/smart-home-socket/)
+[Smart home Socket](https://github.com/e154/smart-home-socket/) |
+[Modbus device controller](https://github.com/e154/smart-home-modbus-ctrl-v1/)
 
 [![Build Status](https://travis-ci.org/e154/smart-home-node.svg?branch=master)](https://travis-ci.org/e154/smart-home-node)
 [![Coverage Status](https://coveralls.io/repos/github/e154/smart-home-node/badge.svg?branch=cover)](https://coveralls.io/github/e154/smart-home-node?branch=cover)
@@ -13,7 +14,7 @@ Smart home node
 Attention! The project is under active development.
 ---------
 
-##### Installation
+### Installation for development
 
 access to serial port
 
@@ -25,24 +26,17 @@ sudo usermod -a -G dialout ${USER}
     
 You then need to log out and log back in again for it to be effective. 
 
-##### Error codes
-    
-    1 serial port errors 
-    2 modbus line errors
-    3 tcp read bytes errors
-    4 unmarshal bytes to json from tcp errors
+```bash
+go get -u github.com/golang/dep/cmd/dep
 
-##### TODO
+git clone https://github.com/e154/smart-home-node $GOPATH/src/github.com/e154/smart-home-node
 
-* работа в качестве демона https://github.com/takama/daemon
-* доступ по сертификату
-* shell console ?
+cd $GOPATH/src/github.com/e154/smart-home-node
 
-##### Протокол основанный но modbus
+dep ensure
 
-* ASCII
-* проверка целостности пакета по контрольной сумме LRC
-* ограничение по времени ожидания ответа 2сек
+go build
+```
 
 ### LICENSE
 
