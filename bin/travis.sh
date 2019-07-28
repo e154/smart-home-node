@@ -69,6 +69,9 @@ main() {
     --build)
     __build
     ;;
+    --docker_deploy)
+    __docker_deploy
+    ;;
     *)
     echo "Error: Invalid argument '$1'" >&2
     exit 1

@@ -14,9 +14,6 @@ ADD . $APP_DIR
 
 ENTRYPOINT (cd $APP_DIR && ./node)
 
-EXPOSE 3000
-
-
 ENV NAME="node1"
 ENV TOPIC="node1"
 ENV MQTT_KEEP_ALIVE="300"
