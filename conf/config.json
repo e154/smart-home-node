@@ -7,7 +7,7 @@
   "mqtt_topics_provider": "mem",
   "mqtt_username": "node1",
   "mqtt_password": "node1",
-  "mqtt_ip": "127.0.0.1",
+  "mqtt_ip": "167.71.51.105",
   "mqtt_port": 1883,
   "serial": ["tty.usbserial", "cu.wchusbserial", "tty.SLAB_USB", "ttyS", "ttyUSB"]
 }
