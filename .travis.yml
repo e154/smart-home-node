@@ -17,6 +17,9 @@ before_install:
   - go get github.com/karalabe/xgo
   - go env && pwd
 
+install:
+  - dep ensure
+
 after_success:
   - sh ./bin/set_tags.sh
 
@@ -26,18 +29,29 @@ script:
   - $HOME/gopath/bin/goveralls -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 deploy:
-  provider: releases
-  api_key: $GITHUB_OAUTH_TOKEN
-  file: $HOME/smart-home-node.tar.gz
-  skip_cleanup: true
-  on:
-    tags: true
-    branch: master
-    repo: e154/smart-home-node
-  branches:
-    only:
-      - master
-      - /^v\d+(\.\d+)+$/
+  - provider: script
+    skip_cleanup: true
+    script: bash ./bin/travis.sh --docker_deploy
+    on:
+      tags: true
+      branch: master
+      repo: e154/smart-home-node
+    branches:
+      only:
+        - master
+        - /^v\d+(\.\d+)+$/
+  - provider: releases
+    api_key: $GITHUB_OAUTH_TOKEN
+    file: $HOME/smart-home-node.tar.gz
+    skip_cleanup: true
+    on:
+      tags: true
+      branch: master
+      repo: e154/smart-home-node
+    branches:
+      only:
+        - master
+        - /^v\d+(\.\d+)+$/
 
 notifications:
   email:
