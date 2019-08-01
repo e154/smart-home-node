@@ -9,7 +9,7 @@ Smart home node
 [Modbus device controller](https://github.com/e154/smart-home-modbus-ctrl-v1/)
 
 [![Build Status](https://travis-ci.org/e154/smart-home-node.svg?branch=master)](https://travis-ci.org/e154/smart-home-node)
-[![Coverage Status](https://coveralls.io/repos/github/e154/smart-home-node/badge.svg?branch=cover)](https://coveralls.io/github/e154/smart-home-node?branch=cover)
+![status](https://img.shields.io/badge/status-beta-yellow.svg)
 
 Attention! The project is under active development.
 ---------
