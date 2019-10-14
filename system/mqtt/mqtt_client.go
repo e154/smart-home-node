@@ -1,12 +1,12 @@
 package mqtt
 
 import (
-	"fmt"
-	"time"
-	"os"
-	"github.com/surgemq/surgemq/service"
-	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"errors"
+	"fmt"
+	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/surgemq/surgemq/service"
+	"os"
+	"time"
 )
 
 type Client struct {
@@ -82,15 +82,20 @@ func (c *Client) Connect() (err error) {
 loop:
 	time.Sleep(time.Second)
 
+	log.Info("connect ....")
+
 	if token := c.client.Connect(); token.Wait() && token.Error() != nil {
 		goto loop
-		return
 	}
+
+	log.Info("connect ....1")
 
 	if err = c.Subscribe(c.topic+"/req", c.qos, c.handler); err != nil {
 		log.Warning(err.Error())
 		goto loop
 	}
+
+	log.Info("connect ....2")
 
 	if err = c.Subscribe("$SYS/broker/connection/#", 0, func(client MQTT.Client, message MQTT.Message) {
 

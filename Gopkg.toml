@@ -51,9 +51,5 @@
   unused-packages = true
 
 [[constraint]]
-  name = "github.com/eclipse/paho.mqtt.golang"
-  version = "1.1.1"
-
-[[constraint]]
   name = "github.com/paulbellamy/ratecounter"
   version = "0.2.0"
