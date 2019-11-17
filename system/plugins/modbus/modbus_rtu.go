@@ -15,7 +15,7 @@ var (
 )
 
 type ModbusRtu struct {
-	params *DevModBusConfig
+	params *DevModBusRtuConfig
 
 	command        []byte
 	respFunc       func(data []byte)
@@ -24,7 +24,7 @@ type ModbusRtu struct {
 
 func NewModbusRtu(respFunc func(data []byte), requestMessage *common.MessageRequest) *ModbusRtu {
 
-	params := &DevModBusConfig{}
+	params := &DevModBusRtuConfig{}
 	if err := json.Unmarshal(requestMessage.Properties, params); err != nil {
 		log.Error(err.Error())
 	}

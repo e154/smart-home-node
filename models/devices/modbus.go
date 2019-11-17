@@ -15,13 +15,17 @@ const (
 	WriteMultipleRegisters     = "WriteMultipleRegisters"
 )
 
-type DevModBusConfig struct {
+type DevModBusRtuConfig struct {
 	SlaveId  int    `json:"slave_id" mapstructure:"slave_id"`   // 1-32
 	Baud     int    `json:"baud"`                               // 9600, 19200, ...
 	DataBits int    `json:"data_bits" mapstructure:"data_bits"` // 5-9
 	StopBits int    `json:"stop_bits" mapstructure:"stop_bits"` // 1, 2
 	Parity   string `json:"parity"`                             // none, odd, even
 	Timeout  int    `json:"timeout"`                            // milliseconds
+}
+
+type DevModBusTcpConfig struct {
+	AddressPort string `json:"address_port" mapstructure:"address_port"`
 }
 
 type DevModBusRequest struct {
