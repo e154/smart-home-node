@@ -12,11 +12,12 @@ const (
 type DeviceType string
 
 const (
-	DevTypeSmartBus = DeviceType("smartbus")
-	DevTypeModBus   = DeviceType("modbus")
-	DevTypeZigbee   = DeviceType("zigbee")
-	DevTypeDefault  = DeviceType("default")
-	DevTypeCommand  = DeviceType("command")
+	DevTypeSmartBus  = DeviceType("smartbus")
+	DevTypeModBusRtu = DeviceType("modbus_rtu")
+	DevTypeModBusTcp = DeviceType("modbus_tcp")
+	DevTypeZigbee    = DeviceType("zigbee")
+	DevTypeDefault   = DeviceType("default")
+	DevTypeCommand   = DeviceType("command")
 )
 
 type ThreadState string

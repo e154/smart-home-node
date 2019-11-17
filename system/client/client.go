@@ -118,9 +118,13 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 	case common.DevTypeSmartBus:
 		cmd := smartbus.NewSmartbus(c.ResponseFunc(cli), message)
 		c.SendMessageToThread(cmd)
-	// modbus
-	case common.DevTypeModBus:
-		cmd := modbus.NewModbus(c.ResponseFunc(cli), message)
+	// modbus rtu
+	case common.DevTypeModBusRtu:
+		cmd := modbus.NewModbusRtu(c.ResponseFunc(cli), message)
+		c.SendMessageToThread(cmd)
+	// modbus tcp
+	case common.DevTypeModBusTcp:
+		cmd := modbus.NewModbusTcp(c.ResponseFunc(cli), message)
 		c.SendMessageToThread(cmd)
 	default:
 		log.Warningf("unknown message device type: %s", message.DeviceType)
