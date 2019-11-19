@@ -25,6 +25,7 @@ type Client struct {
 	handler          func(MQTT.Client, MQTT.Message)
 	lastPing         time.Time
 	reconnect        bool
+	quit             chan struct{}
 }
 
 func NewClient(cfg *MqttConfig,
@@ -59,6 +60,7 @@ func NewClient(cfg *MqttConfig,
 		pongChannel:      make(chan struct{}),
 		cfg:              cfg,
 		reconnect:        true,
+		quit:             make(chan struct{}),
 	}
 
 	go func() {
@@ -70,11 +72,11 @@ func NewClient(cfg *MqttConfig,
 				client.connectionCount++
 			case <-client.brokerClients:
 				client.clientsCount++
+			case <-client.quit:
+				return
 			}
 		}
 	}()
-
-	//go client.ping()
 
 	return
 }
@@ -94,13 +96,13 @@ loop:
 
 	log.Info("connect ....1")
 
-	if token := c.Subscribe(c.topic+"/req", c.qos, c.handler); token.Wait() && token.Error() != nil {
+	if token := c.Subscribe(c.topic+"/req", c.qos, c.handler); token.Error() != nil {
 		goto loop
 	}
 
 	log.Info("connect ....2")
 
-	if token := c.Subscribe(c.topic+"/pong", c.qos, c.pong); token.Wait() && token.Error() != nil {
+	if token := c.Subscribe(c.topic+"/pong", c.qos, c.pong); token.Error() != nil {
 		goto loop
 	}
 
@@ -117,15 +119,16 @@ func (c *Client) Disconnect() {
 		return
 	}
 
-	log.Info("disconnect ....1")
+	c.quit <- struct{}{}
+
 	if token := c.client.Unsubscribe(c.topic + "/req"); token.Error() != nil {
 		log.Error(token.Error().Error())
 	}
-	log.Info("disconnect ....2")
+
 	if token := c.client.Unsubscribe(c.topic + "/pong"); token.Error() != nil {
 		log.Error(token.Error().Error())
 	}
-	log.Info("disconnect ....3")
+
 	c.client.Disconnect(250)
 }
 

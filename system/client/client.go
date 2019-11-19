@@ -91,7 +91,6 @@ func NewClient(cfg *config.AppConfig,
 func (c *Client) Shutdown() {
 	c.updateThreadsTicker.Stop()
 	c.updatePinkTicker.Stop()
-	c.mqttClient.Disconnect()
 }
 
 func (c *Client) Connect() {
