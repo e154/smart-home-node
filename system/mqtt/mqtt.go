@@ -1,10 +1,10 @@
 package mqtt
 
 import (
-	"github.com/op/go-logging"
-	"github.com/surgemq/surgemq/service"
 	"github.com/e154/smart-home-node/system/graceful_service"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/op/go-logging"
+	"github.com/surgemq/surgemq/service"
 )
 
 var (

@@ -1,35 +1,35 @@
 package modbus
 
 import (
-	"github.com/e154/smart-home-node/common"
-	"encoding/json"
-	. "github.com/e154/smart-home-node/models/devices"
-	"github.com/op/go-logging"
-	"github.com/e154/smart-home-node/system/plugins/modbus/driver"
-	"time"
 	"encoding/binary"
+	"encoding/json"
+	"github.com/e154/smart-home-node/common"
+	. "github.com/e154/smart-home-node/models/devices"
+	"github.com/e154/smart-home-node/system/plugins/modbus/driver"
+	"github.com/op/go-logging"
+	"time"
 )
 
 var (
 	log = logging.MustGetLogger("modbus")
 )
 
-type Modbus struct {
-	params *DevModBusConfig
+type ModbusRtu struct {
+	params *DevModBusRtuConfig
 
 	command        []byte
 	respFunc       func(data []byte)
 	requestMessage *common.MessageRequest
 }
 
-func NewModbus(respFunc func(data []byte), requestMessage *common.MessageRequest) *Modbus {
+func NewModbusRtu(respFunc func(data []byte), requestMessage *common.MessageRequest) *ModbusRtu {
 
-	params := &DevModBusConfig{}
+	params := &DevModBusRtuConfig{}
 	if err := json.Unmarshal(requestMessage.Properties, params); err != nil {
 		log.Error(err.Error())
 	}
 
-	return &Modbus{
+	return &ModbusRtu{
 		params:         params,
 		command:        requestMessage.Command,
 		respFunc:       respFunc,
@@ -37,7 +37,7 @@ func NewModbus(respFunc func(data []byte), requestMessage *common.MessageRequest
 	}
 }
 
-func (s *Modbus) Exec(t common.Thread) (resp *common.MessageResponse, err error) {
+func (s *ModbusRtu) Exec(t common.Thread) (resp *common.MessageResponse, err error) {
 
 	//startTime := time.Now()
 	//fmt.Println("exec <-----")
@@ -153,16 +153,16 @@ LOOP:
 	return
 }
 
-func (s *Modbus) Send(item interface{}) {
+func (s *ModbusRtu) Send(item interface{}) {
 	data, _ := json.Marshal(item)
 	s.respFunc(data)
 }
 
-func (s *Modbus) DeviceId() int64 {
+func (s *ModbusRtu) DeviceId() int64 {
 	return s.requestMessage.DeviceId
 }
 
-func (s *Modbus) Connect(device string) (handler *modbus.RTUClientHandler, err error) {
+func (s *ModbusRtu) Connect(device string) (handler *modbus.RTUClientHandler, err error) {
 
 	handler = modbus.NewRTUClientHandler(device)
 	handler.BaudRate = s.params.Baud
@@ -188,7 +188,7 @@ func (s *Modbus) Connect(device string) (handler *modbus.RTUClientHandler, err e
 	return
 }
 
-func (s *Modbus) Check(handler *modbus.RTUClientHandler) {
+func (s *ModbusRtu) Check(handler *modbus.RTUClientHandler) {
 
 	var restart bool
 	if handler.BaudRate != s.params.Baud {
@@ -211,7 +211,7 @@ func (s *Modbus) Check(handler *modbus.RTUClientHandler) {
 	}
 }
 
-func (s *Modbus) parity(p string) (parity string) {
+func (s *ModbusRtu) parity(p string) (parity string) {
 	switch p {
 	case "odd":
 		parity = "O"

@@ -1,22 +1,22 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/e154/smart-home-node/common"
+	"github.com/e154/smart-home-node/system/cache"
 	"github.com/e154/smart-home-node/system/config"
 	"github.com/e154/smart-home-node/system/graceful_service"
-	"github.com/op/go-logging"
 	"github.com/e154/smart-home-node/system/mqtt"
-	MQTT "github.com/eclipse/paho.mqtt.golang"
-	"encoding/json"
-	"time"
-	"github.com/e154/smart-home-node/system/serial"
-	"sync"
-	"github.com/e154/smart-home-node/system/cache"
-	"github.com/e154/smart-home-node/common"
-	"github.com/paulbellamy/ratecounter"
 	"github.com/e154/smart-home-node/system/plugins/command"
-	"github.com/e154/smart-home-node/system/plugins/smartbus"
 	"github.com/e154/smart-home-node/system/plugins/modbus"
+	"github.com/e154/smart-home-node/system/plugins/smartbus"
+	"github.com/e154/smart-home-node/system/serial"
+	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/op/go-logging"
+	"github.com/paulbellamy/ratecounter"
+	"sync"
+	"time"
 )
 
 const (
@@ -31,7 +31,7 @@ var (
 type Client struct {
 	Stat
 	cfg                 *config.AppConfig
-	client              *mqtt.Client
+	mqttClient          *mqtt.Client
 	updateThreadsTicker *time.Ticker
 	updatePinkTicker    *time.Ticker
 	status              common.ClientStatus
@@ -70,7 +70,7 @@ func NewClient(cfg *config.AppConfig,
 	if err != nil {
 		log.Error(err.Error())
 	}
-	client.client = c
+	client.mqttClient = c
 
 	graceful.Subscribe(client)
 
@@ -91,11 +91,10 @@ func NewClient(cfg *config.AppConfig,
 func (c *Client) Shutdown() {
 	c.updateThreadsTicker.Stop()
 	c.updatePinkTicker.Stop()
-	c.client.Disconnect()
 }
 
 func (c *Client) Connect() {
-	go c.client.Connect()
+	c.mqttClient.Connect()
 }
 
 func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
@@ -118,10 +117,14 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 	case common.DevTypeSmartBus:
 		cmd := smartbus.NewSmartbus(c.ResponseFunc(cli), message)
 		c.SendMessageToThread(cmd)
-	// modbus
-	case common.DevTypeModBus:
-		cmd := modbus.NewModbus(c.ResponseFunc(cli), message)
+	// modbus rtu
+	case common.DevTypeModBusRtu:
+		cmd := modbus.NewModbusRtu(c.ResponseFunc(cli), message)
 		c.SendMessageToThread(cmd)
+	// modbus tcp
+	case common.DevTypeModBusTcp:
+		cmd := modbus.NewModbusTcp(c.ResponseFunc(cli), message)
+		cmd.Exec()
 	default:
 		log.Warningf("unknown message device type: %s", message.DeviceType)
 	}
@@ -236,11 +239,7 @@ func (c *Client) UpdateThreads() {
 		}
 	}
 
-	if activeThreads == 0 {
-		c.status = common.StatusBusy
-	} else {
-		c.status = common.StatusEnabled
-	}
+	c.status = common.StatusEnabled
 }
 
 func (c *Client) ping() {
@@ -251,7 +250,7 @@ func (c *Client) ping() {
 		}
 	}
 
-	if c.client != nil && (c.client.IsConnected()) {
+	if c.mqttClient != nil && (c.mqttClient.IsConnected()) {
 		message := &common.ClientStatusModel{
 			Status:    c.status,
 			Thread:    activeThreads,
@@ -261,7 +260,7 @@ func (c *Client) ping() {
 			StartedAt: c.startedAt,
 		}
 		data, _ := json.Marshal(message)
-		c.client.Publish("/ping", data)
+		c.mqttClient.Publish("/ping", data)
 	}
 }
 
