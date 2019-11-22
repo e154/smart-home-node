@@ -90,23 +90,21 @@ loop:
 
 	log.Info("connect ....")
 
+	if c.client == nil {
+		return
+	}
+
 	if token := c.client.Connect(); token.Wait() && token.Error() != nil {
 		goto loop
 	}
-
-	log.Info("connect ....1")
 
 	if token := c.Subscribe(c.topic+"/req", c.qos, c.handler); token.Error() != nil {
 		goto loop
 	}
 
-	log.Info("connect ....2")
-
 	if token := c.Subscribe(c.topic+"/pong", c.qos, c.pong); token.Error() != nil {
 		goto loop
 	}
-
-	log.Info("connect ....3")
 
 	c.lastPing = time.Now()
 	c.reconnect = false
@@ -130,6 +128,8 @@ func (c *Client) Disconnect() {
 	}
 
 	c.client.Disconnect(250)
+
+	c.client = nil
 }
 
 func (c *Client) Publish(topic string, payload interface{}) (err error) {
