@@ -95,6 +95,7 @@ loop:
 	}
 
 	if token := c.client.Connect(); token.Wait() && token.Error() != nil {
+		log.Error(token.Error().Error())
 		goto loop
 	}
 
