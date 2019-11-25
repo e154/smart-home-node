@@ -2,7 +2,7 @@
   "name": "node1",
   "topic": "node1",
   "mqtt_keep_alive": 300,
-  "mqtt_connect_timeout": 2,
+  "mqtt_connect_timeout": 300,
   "mqtt_sessions_provider": "mem",
   "mqtt_topics_provider": "mem",
   "mqtt_username": "node1",

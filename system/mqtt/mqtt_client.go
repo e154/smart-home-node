@@ -3,17 +3,15 @@ package mqtt
 import (
 	"fmt"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
-	"github.com/surgemq/surgemq/service"
 	"os"
 	"time"
 )
 
 type Client struct {
 	qos              byte
-	topic, uri       string
+	baseTopic, uri   string
+	clientId         string
 	client           MQTT.Client
-	onComplete       service.OnCompleteFunc
-	onPublish        service.OnPublishFunc
 	brokerLoad       chan bool
 	brokerConnection chan bool
 	brokerClients    chan bool
@@ -28,13 +26,11 @@ type Client struct {
 	quit             chan struct{}
 }
 
-func NewClient(cfg *MqttConfig,
-	topic string,
-	qos byte,
+func NewClient(cfg *MqttConfig, baseTopic string, qos byte,
 	handler func(MQTT.Client, MQTT.Message)) (client *Client, err error) {
 
 	// Instantiates a new Client
-	uri := fmt.Sprintf("tcp://%s:%d", cfg.SrvIp, cfg.SrvPort)
+	uri := fmt.Sprintf("tcp://%s:%d", cfg.ServerIp, cfg.Port)
 
 	clientId := fmt.Sprintf("node-%d-%d", os.Getpid(), time.Now().Unix())
 	opts := MQTT.NewClientOptions().
@@ -49,7 +45,7 @@ func NewClient(cfg *MqttConfig,
 	c := MQTT.NewClient(opts)
 
 	client = &Client{
-		topic:            topic,
+		baseTopic:        baseTopic,
 		handler:          handler,
 		qos:              qos,
 		client:           c,
@@ -85,26 +81,36 @@ func (c *Client) Connect() {
 
 	log.Infof("Connect to server %s", c.uri)
 
-loop:
-	time.Sleep(time.Second)
+//loop:
+	time.Sleep(time.Millisecond * 500)
 
 	log.Info("connect ....")
 
-	if c.client == nil {
+	//if c.client == nil {
+	//	return
+	//}
+
+	if c.client.IsConnected() {
+		c.client.Disconnect(250)
+	}
+
+	if c.client.IsConnected() {
 		return
 	}
 
 	if token := c.client.Connect(); token.Wait() && token.Error() != nil {
 		log.Error(token.Error().Error())
-		goto loop
+		//goto loop
 	}
 
-	if token := c.Subscribe(c.topic+"/req", c.qos, c.handler); token.Error() != nil {
-		goto loop
+	if token := c.Subscribe(c.baseTopic+"/req", c.qos, c.handler); token.Wait() && token.Error() != nil {
+		log.Error(token.Error().Error())
+		//goto loop
 	}
 
-	if token := c.Subscribe(c.topic+"/pong", c.qos, c.pong); token.Error() != nil {
-		goto loop
+	if token := c.Subscribe(c.baseTopic+"/pong", c.qos, c.pong); token.Wait() && token.Error() != nil {
+		log.Error(token.Error().Error())
+		//goto loop
 	}
 
 	c.lastPing = time.Now()
@@ -120,11 +126,11 @@ func (c *Client) Disconnect() {
 
 	c.quit <- struct{}{}
 
-	if token := c.client.Unsubscribe(c.topic + "/req"); token.Error() != nil {
+	if token := c.client.Unsubscribe(c.baseTopic + "/req"); token.Error() != nil {
 		log.Error(token.Error().Error())
 	}
 
-	if token := c.client.Unsubscribe(c.topic + "/pong"); token.Error() != nil {
+	if token := c.client.Unsubscribe(c.baseTopic + "/pong"); token.Error() != nil {
 		log.Error(token.Error().Error())
 	}
 
@@ -135,7 +141,7 @@ func (c *Client) Disconnect() {
 
 func (c *Client) Publish(topic string, payload interface{}) (err error) {
 	if c.client != nil && (c.client.IsConnected()) {
-		c.client.Publish(c.topic+topic, c.qos, false, payload)
+		c.client.Publish(c.baseTopic+topic, c.qos, false, payload)
 	}
 	return
 }
@@ -145,14 +151,14 @@ func (c *Client) Subscribe(topic string, qos byte, handler func(MQTT.Client, MQT
 }
 
 func (c *Client) IsConnected() bool {
-	if c.reconnect {
-		return false
-	}
+	//if c.reconnect {
+	//	return false
+	//}
 
 	k := time.Now().Sub(c.lastPing).Seconds()
 	if ok := k < 5; !ok {
-		c.reconnect = true
-		c.Connect()
+		//c.reconnect = true
+		//c.Connect()
 		return false
 	}
 

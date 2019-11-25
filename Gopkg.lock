@@ -103,35 +103,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:11395ff810f2ada545e57e8ba7ac23e5081662f4e105d8501506e55958bd5286"
-  name = "github.com/surge/glog"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "2578deb2b95c665e6b1ebabf304ce2085c9e1985"
-
-[[projects]]
-  branch = "master"
-  digest = "1:84dfee0fc72c46f52cb4e4322f8cbb73345d601405f0683285b85038c8d110e8"
-  name = "github.com/surgemq/message"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "2b7ca1ac6121420133f8df6b94a976d5ca35339a"
-
-[[projects]]
-  branch = "master"
-  digest = "1:b318ea1e887063cae478a14c2ebb224c4225b69971122bbd076601b848bb9f45"
-  name = "github.com/surgemq/surgemq"
-  packages = [
-    "auth",
-    "service",
-    "sessions",
-    "topics",
-  ]
-  pruneopts = "UT"
-  revision = "782e2da078054c9a245f7f78c3f9a0994b5c21c2"
-
-[[projects]]
-  branch = "master"
   digest = "1:38f553aff0273ad6f367cb0a0f8b6eecbaef8dc6cb8b50e57b6a81c1d5b1e332"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
@@ -173,7 +144,6 @@
     "github.com/op/go-logging",
     "github.com/paulbellamy/ratecounter",
     "github.com/sirupsen/logrus",
-    "github.com/surgemq/surgemq/service",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
