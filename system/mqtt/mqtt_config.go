@@ -5,25 +5,25 @@ import (
 )
 
 type MqttConfig struct {
-	SrvKeepAlive        int
-	SrvConnectTimeout   int
-	SrvSessionsProvider string
-	MqttUsername        string
-	MqttPassword        string
-	SrvTopicsProvider   string
-	SrvPort             int
-	SrvIp               string
+	KeepAlive        int
+	ConnectTimeout   int
+	SessionsProvider string
+	MqttUsername     string
+	MqttPassword     string
+	TopicsProvider   string
+	Port             int
+	ServerIp         string
 }
 
 func NewMqttConfig(cfg *config.AppConfig) *MqttConfig {
 	return &MqttConfig{
-		SrvKeepAlive:        cfg.MqttKeepAlive,
-		SrvConnectTimeout:   cfg.MqttConnectTimeout,
-		SrvSessionsProvider: cfg.MqttSessionsProvider,
-		MqttUsername:        cfg.MqttUsername,
-		MqttPassword:        cfg.MqttPassword,
-		SrvTopicsProvider:   cfg.MqttTopicsProvider,
-		SrvPort:             cfg.MqttPort,
-		SrvIp:               cfg.MqttIp,
+		KeepAlive:        cfg.MqttKeepAlive,
+		ConnectTimeout:   cfg.MqttConnectTimeout,
+		SessionsProvider: cfg.MqttSessionsProvider,
+		MqttUsername:     cfg.MqttUsername,
+		MqttPassword:     cfg.MqttPassword,
+		TopicsProvider:   cfg.MqttTopicsProvider,
+		Port:             cfg.MqttPort,
+		ServerIp:         cfg.MqttIp,
 	}
 }

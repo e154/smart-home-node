@@ -1,18 +1,20 @@
-package main
+package version
 
-import "fmt"
+import (
+	"fmt"
+)
 
 var (
-	VersionString     = "?"
-	RevisionString    = "?"
+	VersionString = "?"
+	RevisionString = "?"
 	RevisionURLString = "?"
-	GeneratedString   = "?"
-	DevelopersString  = "?"
-	BuildNumString    = "?"
+	GeneratedString = "?"
+	DevelopersString = "?"
+	BuildNumString = "?"
 	DockerImageString = "?"
 )
 
-const verboseVersionBanner string = `
+const VerboseVersionBanner string = `
  ___                _     _  _
 / __|_ __  __ _ _ _| |_  | || |___ _ __  ___
 \__ \ '  \/ _' | '_|  _| | __ / _ \ '  \/ -_)
@@ -22,15 +24,17 @@ Usage: %s [option]
 
 options:
 -v -version - show build version
-help		- show this help text
-
+-backup	    - backup settings to file
+-restore    - restore settings from backup archive
+-reset      - cleanup and restore base settings
+help	    - show this help text
 `
 
-const shortVersionBanner = `
+const ShortVersionBanner = `
  ___                _     _  _
 / __|_ __  __ _ _ _| |_  | || |___ _ __  ___
 \__ \ '  \/ _' | '_|  _| | __ / _ \ '  \/ -_)
-|___/_|_|_\__,_|_|  \__| |_||_\___/_|_|_\___|
+|___/_|_|_\__,_|_|  \__| |_||_\___/_|_|_\___|	
 
 %s
 `

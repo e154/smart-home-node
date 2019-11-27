@@ -42,10 +42,8 @@ type Client struct {
 	pool Threads
 }
 
-func NewClient(cfg *config.AppConfig,
-	graceful *graceful_service.GracefulService,
-	qService *mqtt.Mqtt,
-	serialService *serial.SerialService) *Client {
+func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService,
+	mqtt *mqtt.Mqtt, serialService *serial.SerialService) *Client {
 
 	memCache := &cache.Cache{
 		Cachetime: 3600,
@@ -65,8 +63,8 @@ func NewClient(cfg *config.AppConfig,
 			avgRequest: ratecounter.NewAvgRateCounter(60 * time.Second),
 		},
 	}
-	topic := fmt.Sprintf("/home/%s", cfg.Topic)
-	c, err := qService.NewClient(topic, 0x0, client.onPublish)
+	baseTopic := fmt.Sprintf("/home/%s", cfg.Topic)
+	c, err := mqtt.NewClient(baseTopic, 0x0, client.onPublish)
 	if err != nil {
 		log.Error(err.Error())
 	}
