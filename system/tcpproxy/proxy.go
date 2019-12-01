@@ -21,6 +21,8 @@ type Proxy struct {
 	errsig        chan bool
 	tlsUnwrapp    bool
 	tlsAddress    string
+	quit, closed  bool
+	id            string
 
 	Matcher  func([]byte)
 	Replacer func([]byte) []byte
@@ -32,21 +34,25 @@ type Proxy struct {
 
 // New - Create a new Proxy instance. Takes over local connection passed in,
 // and closes it when finished.
-func New(lconn *net.TCPConn, laddr, raddr *net.TCPAddr) *Proxy {
+func New(lconn *net.TCPConn, laddr, raddr *net.TCPAddr, id string) *Proxy {
+
+	log.Infof("new client %s", id)
+
 	return &Proxy{
 		lconn:  lconn,
 		laddr:  laddr,
 		raddr:  raddr,
 		erred:  false,
 		errsig: make(chan bool),
+		id:     id,
 	}
 }
 
 // NewTLSUnwrapped - Create a new Proxy instance with a remote TLS server for
 // which we want to unwrap the TLS to be able to connect without encryption
 // locally
-func NewTLSUnwrapped(lconn *net.TCPConn, laddr, raddr *net.TCPAddr, addr string) *Proxy {
-	p := New(lconn, laddr, raddr)
+func NewTLSUnwrapped(lconn *net.TCPConn, laddr, raddr *net.TCPAddr, addr, id string) *Proxy {
+	p := New(lconn, laddr, raddr, id)
 	p.tlsUnwrapp = true
 	p.tlsAddress = addr
 	return p
@@ -58,7 +64,10 @@ type setNoDelayer interface {
 
 // Start - open connection to remote and start proxying data.
 func (p *Proxy) Start() {
-	defer p.lconn.Close()
+	defer func() {
+		p.lconn.Close()
+		p.lconn = nil
+	}()
 
 	var err error
 	//connect to remote
@@ -71,7 +80,10 @@ func (p *Proxy) Start() {
 		log.Warningf("Remote connection failed: %s", err)
 		return
 	}
-	defer p.rconn.Close()
+	defer func() {
+		p.rconn.Close()
+		p.rconn = nil
+	}()
 
 	//nagles?
 	if p.Nagles {
@@ -92,7 +104,19 @@ func (p *Proxy) Start() {
 
 	//wait for close...
 	<-p.errsig
-	log.Info("Closed (%d bytes sent, %d bytes recieved)", p.sentBytes, p.receivedBytes)
+	log.Info("Closed %s (%d bytes sent, %d bytes recieved)", p.id, p.sentBytes, p.receivedBytes)
+	p.closed = true
+}
+
+func (p *Proxy) Stop() {
+
+	if p.quit || p.closed{
+		return
+	}
+
+	p.quit = true
+	p.erred = true
+	p.errsig <- true
 }
 
 func (p *Proxy) err(s string, err error) {
@@ -126,6 +150,10 @@ func (p *Proxy) pipe(src, dst io.ReadWriter) {
 	//directional copy (64k buffer)
 	buff := make([]byte, 0xffff)
 	for {
+		if p.quit {
+			return
+		}
+
 		n, err := src.Read(buff)
 		if err != nil {
 			p.err("Read failed '%s'\n", err)

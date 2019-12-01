@@ -75,11 +75,6 @@ func checkEnv(conf *AppConfig) {
 		conf.MqttPort = int(v)
 	}
 
-	if proxyPort := os.Getenv("PROXY_PORT"); proxyPort != "" {
-		v, _ := strconv.ParseInt(proxyPort, 10, 32)
-		conf.ProxyPort = int(v)
-	}
-
 	if serial := os.Getenv("SERIAL"); serial != "" {
 		conf.Serial = strings.Split(serial, ",")
 	}
