@@ -5,11 +5,11 @@ import (
 	"github.com/e154/smart-home-node/system/client"
 	"github.com/e154/smart-home-node/system/graceful_service"
 	l "github.com/e154/smart-home-node/system/logging"
-	"github.com/e154/smart-home-node/system/tcpproxy"
 	"github.com/e154/smart-home-node/version"
 	"github.com/op/go-logging"
 	"github.com/sirupsen/logrus"
 	"os"
+	"github.com/e154/smart-home-node/system/tcpproxy"
 )
 
 var (
