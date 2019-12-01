@@ -26,8 +26,8 @@ func NewTcpProxy(cfg *config.AppConfig,
 		cfg:  cfg,
 		quit: make(chan struct{}),
 	}
-	go proxy.runServer()
-	graceful.Subscribe(proxy)
+	//go proxy.runServer()
+	//graceful.Subscribe(proxy)
 	return proxy
 }
 
