@@ -61,7 +61,7 @@ func (p *TcpProxy) Shutdown() {
 
 func (p *TcpProxy) runServer() {
 
-	laddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf(":%d", p.cfg.MqttPort))
+	laddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf(":%d", p.cfg.ProxyPort))
 	if err != nil {
 		log.Warningf("Failed to resolve local address: %s", err)
 		return
@@ -82,7 +82,7 @@ func (p *TcpProxy) runServer() {
 		return
 	}
 
-	log.Infof("Serving server at tcp://[::]:%d", p.cfg.MqttPort)
+	log.Infof("Serving server at tcp://[::]:%d", p.cfg.ProxyPort)
 
 	for {
 		select {
@@ -99,6 +99,10 @@ func (p *TcpProxy) runServer() {
 			continue
 		}
 
+		fmt.Println(conn)
+		fmt.Println(err)
+
+		fmt.Println("---")
 		go p.addClient(conn, laddr, raddr)
 	}
 }

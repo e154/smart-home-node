@@ -11,6 +11,7 @@ type AppConfig struct {
 	MqttTopicsProvider   string   `json:"mqtt_topics_provider"`
 	MqttIp               string   `json:"mqtt_ip"`
 	MqttPort             int      `json:"mqtt_port"`
+	ProxyPort            int      `json:"proxy_port"`
 	Serial               []string `json:"serial"`
 }
 

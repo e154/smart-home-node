@@ -8,18 +8,11 @@ import (
 )
 
 type Client struct {
-	qos             byte
-	baseTopic, uri  string
-	clientId        string
-	client          MQTT.Client
-	pongChannel     chan struct{}
-	cfg             *MqttConfig
-	loadCount       int
-	connectionCount int
-	clientsCount    int
-	handler         func(MQTT.Client, MQTT.Message)
-	reconnect       bool
-	quit            chan struct{}
+	qos            byte
+	baseTopic, uri string
+	client         MQTT.Client
+	cfg            *MqttConfig
+	handler        func(MQTT.Client, MQTT.Message)
 }
 
 func NewClient(cfg *MqttConfig, baseTopic string, qos byte,
@@ -28,13 +21,11 @@ func NewClient(cfg *MqttConfig, baseTopic string, qos byte,
 	uri := fmt.Sprintf("tcp://%s:%d", cfg.ServerIp, cfg.Port)
 
 	client = &Client{
-		baseTopic:   baseTopic,
-		handler:     handler,
-		qos:         qos,
-		uri:         uri,
-		pongChannel: make(chan struct{}),
-		cfg:         cfg,
-		reconnect:   true,
+		baseTopic: baseTopic,
+		handler:   handler,
+		qos:       qos,
+		uri:       uri,
+		cfg:       cfg,
 	}
 
 	clientId := fmt.Sprintf("node-%d-%d", os.Getpid(), time.Now().Unix())
