@@ -82,7 +82,7 @@ func (s *ModbusTcp) Exec() (resp *common.MessageResponse, err error) {
 
 	if err != nil {
 		resp.Status = "error"
-		log.Error(err.Error())
+		//log.Error(err.Error())
 		r.Error = err.Error()
 	}
 
