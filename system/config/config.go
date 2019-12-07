@@ -36,8 +36,8 @@ func checkEnv(conf *AppConfig) {
 		conf.Name = name
 	}
 
-	if topic := os.Getenv("TOPIC"); topic != "" {
-		conf.Topic = topic
+	if clientId := os.Getenv("MQTT_CLIENT_ID"); clientId != "" {
+		conf.MqttClientId = clientId
 	}
 
 	if mqttKeepAlive := os.Getenv("MQTT_KEEP_ALIVE"); mqttKeepAlive != "" {

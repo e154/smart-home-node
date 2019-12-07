@@ -13,6 +13,7 @@ type MqttConfig struct {
 	TopicsProvider   string
 	Port             int
 	ServerIp         string
+	MqttClientId     string
 }
 
 func NewMqttConfig(cfg *config.AppConfig) *MqttConfig {
@@ -25,5 +26,6 @@ func NewMqttConfig(cfg *config.AppConfig) *MqttConfig {
 		TopicsProvider:   cfg.MqttTopicsProvider,
 		Port:             cfg.MqttPort,
 		ServerIp:         cfg.MqttIp,
+		MqttClientId:     cfg.MqttClientId,
 	}
 }

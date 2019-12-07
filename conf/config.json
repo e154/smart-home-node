@@ -1,6 +1,6 @@
 {
   "name": "node1",
-  "topic": "node1",
+  "mqtt_client_id": "node1",
   "mqtt_keep_alive": 300,
   "mqtt_connect_timeout": 300,
   "mqtt_sessions_provider": "mem",

@@ -2,9 +2,9 @@ package tcpproxy
 
 import (
 	"fmt"
-	"github.com/e154/smart-home-gate/system/uuid"
 	"github.com/e154/smart-home-node/system/config"
 	"github.com/e154/smart-home-node/system/graceful_service"
+	"github.com/e154/smart-home-node/system/uuid"
 	"net"
 	"strings"
 	"sync"
@@ -99,10 +99,6 @@ func (p *TcpProxy) runServer() {
 			continue
 		}
 
-		fmt.Println(conn)
-		fmt.Println(err)
-
-		fmt.Println("---")
 		go p.addClient(conn, laddr, raddr)
 	}
 }

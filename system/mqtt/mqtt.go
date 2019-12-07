@@ -1,8 +1,9 @@
 package mqtt
 
 import (
+	"fmt"
 	"github.com/e154/smart-home-node/system/graceful_service"
-	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"github.com/e154/smart-home-node/system/mqtt_client"
 	"github.com/op/go-logging"
 )
 
@@ -12,7 +13,7 @@ var (
 
 type Mqtt struct {
 	cfg     *MqttConfig
-	clients []*Client
+	clients []*mqtt_client.Client
 }
 
 func NewMqtt(cfg *MqttConfig,
@@ -37,9 +38,22 @@ func (m *Mqtt) Shutdown() {
 	log.Info("Server exiting")
 }
 
-func (m *Mqtt) NewClient(baseTopic string, qos byte, handler func(MQTT.Client, MQTT.Message)) (c *Client, err error) {
+func (m *Mqtt) NewClient(cfg *mqtt_client.Config) (c *mqtt_client.Client, err error) {
 
-	if c, err = NewClient(m.cfg, baseTopic, qos, handler); err != nil {
+	if cfg == nil {
+		cfg = &mqtt_client.Config{
+			KeepAlive:      m.cfg.KeepAlive,
+			PingTimeout:    5,
+			Broker:         fmt.Sprintf("tcp://%s:%d", m.cfg.ServerIp, m.cfg.Port),
+			ClientID:       m.cfg.MqttClientId,
+			ConnectTimeout: m.cfg.ConnectTimeout,
+			CleanSession:   true,
+			Username:       m.cfg.MqttUsername,
+			Password:       m.cfg.MqttPassword,
+		}
+	}
+
+	if c, err = mqtt_client.NewClient(cfg); err != nil {
 		return
 	}
 
