@@ -1,6 +1,6 @@
 {
   "name": "node1",
-  "topic": "node1",
+  "mqtt_client_id": "node1",
   "mqtt_keep_alive": 300,
   "mqtt_connect_timeout": 300,
   "mqtt_sessions_provider": "mem",
@@ -9,6 +9,7 @@
   "mqtt_password": "node1",
   "mqtt_ip": "127.0.0.1",
   "mqtt_port": 1883,
+  "proxy_port": 4883,
   "serial": [
     "tty.usbserial",
     "cu.wchusbserial",

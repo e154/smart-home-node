@@ -8,6 +8,7 @@ import (
 	"github.com/e154/smart-home-node/system/config"
 	"github.com/e154/smart-home-node/system/graceful_service"
 	"github.com/e154/smart-home-node/system/mqtt"
+	"github.com/e154/smart-home-node/system/mqtt_client"
 	"github.com/e154/smart-home-node/system/plugins/command"
 	"github.com/e154/smart-home-node/system/plugins/modbus"
 	"github.com/e154/smart-home-node/system/plugins/smartbus"
@@ -31,7 +32,8 @@ var (
 type Client struct {
 	Stat
 	cfg                 *config.AppConfig
-	mqttClient          *mqtt.Client
+	mqtt                *mqtt.Mqtt
+	mqttClient          *mqtt_client.Client
 	updateThreadsTicker *time.Ticker
 	updatePinkTicker    *time.Ticker
 	status              common.ClientStatus
@@ -62,13 +64,8 @@ func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService
 			rpsCounter: ratecounter.NewRateCounter(1 * time.Second),
 			avgRequest: ratecounter.NewAvgRateCounter(60 * time.Second),
 		},
+		mqtt: mqtt,
 	}
-	baseTopic := fmt.Sprintf("/home/%s", cfg.Topic)
-	c, err := mqtt.NewClient(baseTopic, 0x0, client.onPublish)
-	if err != nil {
-		log.Error(err.Error())
-	}
-	client.mqttClient = c
 
 	graceful.Subscribe(client)
 
@@ -92,7 +89,19 @@ func (c *Client) Shutdown() {
 }
 
 func (c *Client) Connect() {
-	c.mqttClient.Connect()
+
+	mqttClient, err := c.mqtt.NewClient(nil)
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+	if err := mqttClient.Connect(); err != nil {
+		log.Error(err.Error())
+	}
+
+	c.mqttClient = mqttClient
+
+	_ = c.mqttClient.Subscribe(c.topic("req"), 0, c.onPublish)
 }
 
 func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
@@ -258,7 +267,7 @@ func (c *Client) ping() {
 			StartedAt: c.startedAt,
 		}
 		data, _ := json.Marshal(message)
-		c.mqttClient.Publish("/ping", data)
+		c.mqttClient.Publish(c.topic("ping"), data)
 	}
 }
 
@@ -267,10 +276,13 @@ func (c *Client) ResponseFunc(cli MQTT.Client) func(data []byte) {
 	return func(data []byte) {
 		// response
 		if cli.IsConnected() {
-			topic := fmt.Sprintf("/home/%s", c.cfg.Topic)
-			if token := cli.Publish(topic+"/resp", 0x0, false, data); token.Wait() && token.Error() != nil {
+			if token := cli.Publish(c.topic("resp"), 0x0, false, data); token.Wait() && token.Error() != nil {
 				log.Error(token.Error().Error())
 			}
 		}
 	}
+}
+
+func (c *Client) topic(r string) string {
+	return fmt.Sprintf("/home/node/%s/%s", c.cfg.MqttClientId, r)
 }

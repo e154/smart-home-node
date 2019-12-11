@@ -2,7 +2,7 @@ package config
 
 type AppConfig struct {
 	Name                 string   `json:"name"`
-	Topic                string   `json:"topic"`
+	MqttClientId         string   `json:"mqtt_client_id"`
 	MqttKeepAlive        int      `json:"mqtt_keep_alive"`
 	MqttConnectTimeout   int      `json:"mqtt_connect_timeout"`
 	MqttSessionsProvider string   `json:"mqtt_sessions_provider"`
@@ -11,6 +11,7 @@ type AppConfig struct {
 	MqttTopicsProvider   string   `json:"mqtt_topics_provider"`
 	MqttIp               string   `json:"mqtt_ip"`
 	MqttPort             int      `json:"mqtt_port"`
+	ProxyPort            int      `json:"proxy_port"`
 	Serial               []string `json:"serial"`
 }
 

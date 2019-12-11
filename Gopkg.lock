@@ -18,14 +18,6 @@
   revision = "2a77d83c837dd57108d16384693194dacf709232"
 
 [[projects]]
-  branch = "v2"
-  digest = "1:6bbb1a24cba5f207f5fb907d0529844c861614431ed984515420f7006c72c07d"
-  name = "github.com/e154/smart-home"
-  packages = ["system/validation"]
-  pruneopts = "UT"
-  revision = "a1c93ce276104984eafc23fb1822118f0c9dc46b"
-
-[[projects]]
   digest = "1:bb89a2542933056fcebc2950bb15ec636e623cc43c96597288aa2009f15b0ce1"
   name = "github.com/eclipse/paho.mqtt.golang"
   packages = [
@@ -138,7 +130,6 @@
   input-imports = [
     "github.com/astaxie/beego/cache",
     "github.com/e154/serial",
-    "github.com/e154/smart-home/system/validation",
     "github.com/eclipse/paho.mqtt.golang",
     "github.com/olivere/elastic",
     "github.com/op/go-logging",
