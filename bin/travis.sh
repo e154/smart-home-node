@@ -117,6 +117,7 @@ __build() {
     xgo --out=${EXEC} --branch=${BRANCH} --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
 
     cp -r ${ROOT}/conf ${TMP_DIR}
+    cp -r ${ROOT}/data ${TMP_DIR}
     cp ${ROOT}/LICENSE ${TMP_DIR}
     cp ${ROOT}/README.md ${TMP_DIR}
     cp ${ROOT}/contributors.txt ${TMP_DIR}
