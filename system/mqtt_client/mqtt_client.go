@@ -47,7 +47,7 @@ func (c *Client) Connect() (err error) {
 	log.Infof("Connect to server %s", c.cfg.Broker)
 
 	if token := c.client.Connect(); token.Wait() && token.Error() != nil {
-		log.Error(token.Error().Error())
+		//log.Error(token.Error().Error())
 	}
 
 	return

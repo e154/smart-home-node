@@ -40,6 +40,7 @@ type Client struct {
 	cache               *cache.Cache
 	startedAt           time.Time
 	serialService       *serial.SerialService
+	quit                bool
 	sync.Mutex
 	pool Threads
 }
@@ -84,22 +85,27 @@ func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService
 }
 
 func (c *Client) Shutdown() {
+	c.quit = true
 	c.updateThreadsTicker.Stop()
 	c.updatePinkTicker.Stop()
 }
 
 func (c *Client) Connect() {
 
-	mqttClient, err := c.mqtt.NewClient(nil)
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	if err := mqttClient.Connect(); err != nil {
+	var err error
+	if c.mqttClient, err = c.mqtt.NewClient(nil); err != nil {
 		log.Error(err.Error())
 	}
 
-	c.mqttClient = mqttClient
+LOOP:
+	if err = c.mqttClient.Connect(); err != nil {
+		log.Error(err.Error())
+	}
+
+	if !c.mqttClient.IsConnected() && !c.quit {
+		time.Sleep(time.Second)
+		goto LOOP
+	}
 
 	_ = c.mqttClient.Subscribe(c.topic("req"), 0, c.onPublish)
 }
