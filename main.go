@@ -56,7 +56,7 @@ func start() {
 	fmt.Printf(version.ShortVersionBanner, "")
 
 	container := BuildContainer()
-	container.Invoke(func(
+	err := container.Invoke(func(
 		graceful *graceful_service.GracefulService,
 		lx *logrus.Logger,
 		client *client.Client,
@@ -64,7 +64,12 @@ func start() {
 
 		l.Initialize(lx)
 		client.Connect()
+		go server.Start()
 
 		graceful.Wait()
 	})
+
+	if err != nil {
+		panic(err.Error())
+	}
 }

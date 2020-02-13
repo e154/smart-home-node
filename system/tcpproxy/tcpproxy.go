@@ -45,9 +45,12 @@ func NewTcpProxy(cfg *config.AppConfig,
 		mx:      sync.Mutex{},
 		clients: make(map[string]*Proxy),
 	}
-	go proxy.runServer()
 	graceful.Subscribe(proxy)
 	return proxy
+}
+
+func (p *TcpProxy) Start() {
+	p.runServer()
 }
 
 func (p *TcpProxy) Shutdown() {

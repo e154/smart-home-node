@@ -50,15 +50,16 @@ type Client struct {
 	Stat
 	cfg                 *config.AppConfig
 	mqtt                *mqtt.Mqtt
-	mqttClient          *mqtt_client.Client
 	updateThreadsTicker *time.Ticker
 	updatePinkTicker    *time.Ticker
 	status              common.ClientStatus
 	cache               *cache.Cache
 	serialService       *serial.SerialService
 	quit                bool
-	sync.Mutex
-	pool Threads
+	poolLocker          sync.Mutex
+	pool                Threads
+	mqttClientLocker    sync.Mutex
+	mqttClient          *mqtt_client.Client
 }
 
 func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService,
@@ -72,12 +73,14 @@ func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService
 		cfg:                 cfg,
 		updateThreadsTicker: time.NewTicker(threadTimeTick),
 		updatePinkTicker:    time.NewTicker(pingTimeTick),
-		pool:                make(Threads),
 		cache:               memCache,
 		status:              common.StatusEnabled,
 		serialService:       serialService,
 		Stat:                NewStat(),
 		mqtt:                mqtt,
+		poolLocker:          sync.Mutex{},
+		pool:                make(Threads),
+		mqttClientLocker:    sync.Mutex{},
 	}
 
 	graceful.Subscribe(client)
@@ -103,6 +106,9 @@ func (c *Client) Shutdown() {
 }
 
 func (c *Client) Connect() {
+
+	c.mqttClientLocker.Lock()
+	defer c.mqttClientLocker.Unlock()
 
 	var err error
 	if c.mqttClient, err = c.mqtt.NewClient(nil); err != nil {
@@ -212,8 +218,8 @@ LOOP:
 
 func (c *Client) UpdateThreads() {
 
-	c.Lock()
-	defer c.Unlock()
+	c.poolLocker.Lock()
+	defer c.poolLocker.Unlock()
 
 	//log.Debug("update thread list")
 
@@ -274,6 +280,9 @@ func (c *Client) ping() {
 			activeThreads++
 		}
 	}
+
+	c.mqttClientLocker.Lock()
+	defer c.mqttClientLocker.Unlock()
 
 	if c.mqttClient != nil && (c.mqttClient.IsConnected()) {
 		snapshot := c.GetStat()
