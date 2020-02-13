@@ -1,8 +1,27 @@
+// This file is part of the Smart Home
+// Program complex distribution https://github.com/e154/smart-home
+// Copyright (C) 2016-2020, Filippov Alex
+//
+// This library is free software: you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Library General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library.  If not, see
+// <https://www.gnu.org/licenses/>.
+
 package mqtt_client
 
 import (
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/op/go-logging"
+	"sync"
 	"time"
 )
 
@@ -11,7 +30,8 @@ var (
 )
 
 type Client struct {
-	cfg        *Config
+	cfg *Config
+	sync.Mutex
 	client     MQTT.Client
 	subscribes map[string]Subscribe
 }
@@ -44,27 +64,39 @@ func NewClient(cfg *Config) (client *Client, err error) {
 
 func (c *Client) Connect() (err error) {
 
+	c.Lock()
+	defer c.Unlock()
+
 	log.Infof("Connect to server %s", c.cfg.Broker)
 
 	if token := c.client.Connect(); token.Wait() && token.Error() != nil {
-		log.Error(token.Error().Error())
+		//log.Error(token.Error().Error())
 	}
 
 	return
 }
 
 func (c *Client) Disconnect() {
+
+	c.Lock()
 	if c.client == nil {
+		c.Unlock()
 		return
 	}
+	c.Unlock()
 
 	c.UnsubscribeAll()
-	c.subscribes = make(map[string]Subscribe)
+
+	c.Lock()
 	c.client.Disconnect(250)
-	c.client = nil
+	//c.client = nil
+	c.Unlock()
 }
 
 func (c *Client) Subscribe(topic string, qos byte, callback MQTT.MessageHandler) (err error) {
+
+	c.Lock()
+	defer c.Unlock()
 
 	if _, ok := c.subscribes[topic]; !ok {
 		c.subscribes[topic] = Subscribe{
@@ -82,6 +114,9 @@ func (c *Client) Subscribe(topic string, qos byte, callback MQTT.MessageHandler)
 
 func (c *Client) Unsubscribe(topic string) (err error) {
 
+	c.Lock()
+	defer c.Unlock()
+
 	if token := c.client.Unsubscribe(topic); token.Wait() && token.Error() != nil {
 		log.Error(token.Error().Error())
 		return token.Error()
@@ -90,16 +125,21 @@ func (c *Client) Unsubscribe(topic string) (err error) {
 }
 
 func (c *Client) UnsubscribeAll() {
+	c.Lock()
+	defer c.Unlock()
 
 	for topic, _ := range c.subscribes {
 		if token := c.client.Unsubscribe(topic); token.Error() != nil {
 			log.Error(token.Error().Error())
 		}
+		delete(c.subscribes, topic)
 	}
-	c.subscribes = make(map[string]Subscribe)
 }
 
 func (c *Client) Publish(topic string, payload interface{}) (err error) {
+	c.Lock()
+	defer c.Unlock()
+
 	if c.client != nil && (c.client.IsConnected()) {
 		c.client.Publish(topic, c.cfg.Qos, false, payload)
 	}
@@ -107,10 +147,16 @@ func (c *Client) Publish(topic string, payload interface{}) (err error) {
 }
 
 func (c *Client) IsConnected() bool {
+	c.Lock()
+	defer c.Unlock()
+
 	return c.client.IsConnectionOpen()
 }
 
 func (c *Client) onConnectionLostHandler(client MQTT.Client, e error) {
+
+	c.Lock()
+	defer c.Unlock()
 
 	log.Debug("connection lost...")
 
@@ -122,6 +168,9 @@ func (c *Client) onConnectionLostHandler(client MQTT.Client, e error) {
 }
 
 func (c *Client) onConnect(client MQTT.Client) {
+
+	c.Lock()
+	defer c.Unlock()
 
 	log.Debug("connected...")
 

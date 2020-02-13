@@ -10,6 +10,7 @@ Smart home node
 
 [![Build Status](https://travis-ci.org/e154/smart-home-node.svg?branch=master)](https://travis-ci.org/e154/smart-home-node)
 ![status](https://img.shields.io/badge/status-beta-yellow.svg)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 Attention! The project is under active development.
 ---------
@@ -40,4 +41,4 @@ go build
 
 ### LICENSE
 
-[MIT Public License](https://github.com/e154/smart-home-node/blob/master/LICENSE)
+[GPLv3 Public License](https://github.com/e154/smart-home-node/blob/master/LICENSE)

@@ -1,3 +1,21 @@
+// This file is part of the Smart Home
+// Program complex distribution https://github.com/e154/smart-home
+// Copyright (C) 2016-2020, Filippov Alex
+//
+// This library is free software: you can redistribute it and/or
+// modify it under the terms of the GNU Lesser General Public
+// License as published by the Free Software Foundation; either
+// version 3 of the License, or (at your option) any later version.
+//
+// This library is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// Library General Public License for more details.
+//
+// You should have received a copy of the GNU Lesser General Public
+// License along with this library.  If not, see
+// <https://www.gnu.org/licenses/>.
+
 package client
 
 import (
@@ -15,7 +33,6 @@ import (
 	"github.com/e154/smart-home-node/system/serial"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/op/go-logging"
-	"github.com/paulbellamy/ratecounter"
 	"sync"
 	"time"
 )
@@ -33,15 +50,16 @@ type Client struct {
 	Stat
 	cfg                 *config.AppConfig
 	mqtt                *mqtt.Mqtt
-	mqttClient          *mqtt_client.Client
 	updateThreadsTicker *time.Ticker
 	updatePinkTicker    *time.Ticker
 	status              common.ClientStatus
 	cache               *cache.Cache
-	startedAt           time.Time
 	serialService       *serial.SerialService
-	sync.Mutex
-	pool Threads
+	quit                bool
+	poolLocker          sync.Mutex
+	pool                Threads
+	mqttClientLocker    sync.Mutex
+	mqttClient          *mqtt_client.Client
 }
 
 func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService,
@@ -55,16 +73,14 @@ func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService
 		cfg:                 cfg,
 		updateThreadsTicker: time.NewTicker(threadTimeTick),
 		updatePinkTicker:    time.NewTicker(pingTimeTick),
-		pool:                make(Threads),
 		cache:               memCache,
 		status:              common.StatusEnabled,
-		startedAt:           time.Now(),
 		serialService:       serialService,
-		Stat: Stat{
-			rpsCounter: ratecounter.NewRateCounter(1 * time.Second),
-			avgRequest: ratecounter.NewAvgRateCounter(60 * time.Second),
-		},
-		mqtt: mqtt,
+		Stat:                NewStat(),
+		mqtt:                mqtt,
+		poolLocker:          sync.Mutex{},
+		pool:                make(Threads),
+		mqttClientLocker:    sync.Mutex{},
 	}
 
 	graceful.Subscribe(client)
@@ -84,22 +100,30 @@ func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService
 }
 
 func (c *Client) Shutdown() {
+	c.quit = true
 	c.updateThreadsTicker.Stop()
 	c.updatePinkTicker.Stop()
 }
 
 func (c *Client) Connect() {
 
-	mqttClient, err := c.mqtt.NewClient(nil)
-	if err != nil {
-		log.Error(err.Error())
-		return
-	}
-	if err := mqttClient.Connect(); err != nil {
+	c.mqttClientLocker.Lock()
+	defer c.mqttClientLocker.Unlock()
+
+	var err error
+	if c.mqttClient, err = c.mqtt.NewClient(nil); err != nil {
 		log.Error(err.Error())
 	}
 
-	c.mqttClient = mqttClient
+LOOP:
+	if err = c.mqttClient.Connect(); err != nil {
+		log.Error(err.Error())
+	}
+
+	if !c.mqttClient.IsConnected() && !c.quit {
+		time.Sleep(time.Second)
+		goto LOOP
+	}
 
 	_ = c.mqttClient.Subscribe(c.topic("req"), 0, c.onPublish)
 }
@@ -194,8 +218,8 @@ LOOP:
 
 func (c *Client) UpdateThreads() {
 
-	c.Lock()
-	defer c.Unlock()
+	c.poolLocker.Lock()
+	defer c.poolLocker.Unlock()
 
 	//log.Debug("update thread list")
 
@@ -257,14 +281,18 @@ func (c *Client) ping() {
 		}
 	}
 
+	c.mqttClientLocker.Lock()
+	defer c.mqttClientLocker.Unlock()
+
 	if c.mqttClient != nil && (c.mqttClient.IsConnected()) {
-		message := &common.ClientStatusModel{
+		snapshot := c.GetStat()
+		message := common.ClientStatusModel{
 			Status:    c.status,
 			Thread:    activeThreads,
-			Rps:       c.rpsCounter.Rate(),
-			Min:       c.min,
-			Max:       c.max,
-			StartedAt: c.startedAt,
+			Rps:       snapshot.Rps,
+			Min:       snapshot.Min,
+			Max:       snapshot.Max,
+			StartedAt: snapshot.StartedAt,
 		}
 		data, _ := json.Marshal(message)
 		c.mqttClient.Publish(c.topic("ping"), data)
