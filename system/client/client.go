@@ -33,7 +33,6 @@ import (
 	"github.com/e154/smart-home-node/system/serial"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/op/go-logging"
-	"github.com/paulbellamy/ratecounter"
 	"sync"
 	"time"
 )
@@ -56,7 +55,6 @@ type Client struct {
 	updatePinkTicker    *time.Ticker
 	status              common.ClientStatus
 	cache               *cache.Cache
-	startedAt           time.Time
 	serialService       *serial.SerialService
 	quit                bool
 	sync.Mutex
@@ -77,13 +75,9 @@ func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService
 		pool:                make(Threads),
 		cache:               memCache,
 		status:              common.StatusEnabled,
-		startedAt:           time.Now(),
 		serialService:       serialService,
-		Stat: Stat{
-			rpsCounter: ratecounter.NewRateCounter(1 * time.Second),
-			avgRequest: ratecounter.NewAvgRateCounter(60 * time.Second),
-		},
-		mqtt: mqtt,
+		Stat:                NewStat(),
+		mqtt:                mqtt,
 	}
 
 	graceful.Subscribe(client)
@@ -282,13 +276,14 @@ func (c *Client) ping() {
 	}
 
 	if c.mqttClient != nil && (c.mqttClient.IsConnected()) {
-		message := &common.ClientStatusModel{
+		snapshot := c.GetStat()
+		message := common.ClientStatusModel{
 			Status:    c.status,
 			Thread:    activeThreads,
-			Rps:       c.rpsCounter.Rate(),
-			Min:       c.min,
-			Max:       c.max,
-			StartedAt: c.startedAt,
+			Rps:       snapshot.Rps,
+			Min:       snapshot.Min,
+			Max:       snapshot.Max,
+			StartedAt: snapshot.StartedAt,
 		}
 		data, _ := json.Marshal(message)
 		c.mqttClient.Publish(c.topic("ping"), data)

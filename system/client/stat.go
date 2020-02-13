@@ -20,18 +20,31 @@ package client
 
 import (
 	"github.com/paulbellamy/ratecounter"
+	"sync"
 	"time"
 )
 
 type Stat struct {
+	sync.Mutex
 	min        int64
 	max        int64
 	rpsCounter *ratecounter.RateCounter
 	avgRequest *ratecounter.AvgRateCounter
+	startedAt  time.Time
+}
+
+func NewStat() Stat {
+	return Stat{
+		rpsCounter: ratecounter.NewRateCounter(1 * time.Second),
+		avgRequest: ratecounter.NewAvgRateCounter(60 * time.Second),
+		startedAt:  time.Now(),
+	}
 }
 
 func (c *Stat) rpsCounterIncr() {
+	c.Lock()
 	c.rpsCounter.Incr(1)
+	c.Unlock()
 }
 
 func (c *Stat) avgStart() (time.Time) {
@@ -40,6 +53,8 @@ func (c *Stat) avgStart() (time.Time) {
 
 func (c *Stat) avgEnd(startTime time.Time) {
 	total := time.Since(startTime).Nanoseconds()
+
+	c.Lock()
 	c.avgRequest.Incr(total)
 
 	switch {
@@ -47,5 +62,18 @@ func (c *Stat) avgEnd(startTime time.Time) {
 		c.min = total
 	case total > c.max || c.max == 0:
 		c.max = total
+	}
+	c.Unlock()
+}
+
+func (c *Stat) GetStat() StateSnapshot {
+	c.Lock()
+	defer c.Unlock()
+
+	return StateSnapshot{
+		Min:       c.min,
+		Max:       c.max,
+		Rps:       c.rpsCounter.Rate(),
+		StartedAt: c.startedAt,
 	}
 }

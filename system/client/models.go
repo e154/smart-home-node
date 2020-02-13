@@ -17,3 +17,12 @@
 // <https://www.gnu.org/licenses/>.
 
 package client
+
+import "time"
+
+type StateSnapshot struct {
+	Rps       int64     `json:"rps"`
+	Min       int64     `json:"min"`
+	Max       int64     `json:"max"`
+	StartedAt time.Time `json:"started_at"`
+}
