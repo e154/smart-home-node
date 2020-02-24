@@ -8,9 +8,15 @@ Smart home node
 [Smart home Socket](https://github.com/e154/smart-home-socket/) |
 [Modbus device controller](https://github.com/e154/smart-home-modbus-ctrl-v1/)
 
-[![Build Status](https://travis-ci.org/e154/smart-home-node.svg?branch=master)](https://travis-ci.org/e154/smart-home-node)
 ![status](https://img.shields.io/badge/status-beta-yellow.svg)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+
+|Branch      |Status   |
+|------------|---------|
+|master      | [![Build Status](https://travis-ci.org/e154/smart-home-node.svg?branch=master)](https://travis-ci.org/e154/smart-home-node?branch=master)   |
+|dev         | [![Build Status](https://travis-ci.org/e154/smart-home-node.svg?branch=develop)](https://travis-ci.org/e154/smart-home-node?branch=develop) |
+
 
 Attention! The project is under active development.
 ---------
