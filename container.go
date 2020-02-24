@@ -21,12 +21,12 @@ package main
 import (
 	"github.com/e154/smart-home-node/system/client"
 	"github.com/e154/smart-home-node/system/config"
-	"github.com/e154/smart-home-node/system/dig"
 	"github.com/e154/smart-home-node/system/graceful_service"
 	"github.com/e154/smart-home-node/system/logging"
 	"github.com/e154/smart-home-node/system/mqtt"
 	"github.com/e154/smart-home-node/system/serial"
 	"github.com/e154/smart-home-node/system/tcpproxy"
+	"go.uber.org/dig"
 )
 
 func BuildContainer() (container *dig.Container) {

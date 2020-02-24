@@ -28,13 +28,11 @@ sudo usermod -a -G dialout ${USER}
 You then need to log out and log back in again for it to be effective. 
 
 ```bash
-go get -u github.com/golang/dep/cmd/dep
-
 git clone https://github.com/e154/smart-home-node $GOPATH/src/github.com/e154/smart-home-node
 
 cd $GOPATH/src/github.com/e154/smart-home-node
 
-dep ensure
+go mod vendor
 
 go build
 ```
