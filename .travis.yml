@@ -1,7 +1,7 @@
 language: go
 
 go:
-  - 1.9.x
+  - 1.13.x
 
 env:
   global:
@@ -11,14 +11,13 @@ services:
   - docker
 
 before_install:
-  - go get -u github.com/golang/dep/cmd/dep
   - go get github.com/mattn/goveralls
   - go get golang.org/x/tools/cmd/cover
   - go get github.com/karalabe/xgo
   - go env && pwd
 
 install:
-  - dep ensure
+  - go mod vendor
 
 after_success:
   - sh ./bin/set_tags.sh
