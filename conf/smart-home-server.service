@@ -1,0 +1,17 @@
+[Unit]
+Description=Smart home node
+After=multi-user.target
+
+
+[Service]
+Type=simple
+Restart=always
+WorkingDirectory=/opt/smart-home/node
+ExecStart=/opt/smart-home/node/node
+
+User=smart_home
+Group=smart_home
+
+
+[Install]
+WantedBy=multi-user.target

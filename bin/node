@@ -32,7 +32,7 @@ if [ -z "$UNAME" ]; then
   exit 1
 fi
 
-cd $BASEDIR
+#cd $BASEDIR
 
 main() {
 
