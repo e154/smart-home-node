@@ -21,6 +21,7 @@ package mqtt_client
 import (
 	"github.com/e154/smart-home-node/common"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"sync"
 	"time"
 )
 
@@ -29,9 +30,10 @@ var (
 )
 
 type Client struct {
-	cfg        *Config
-	client     MQTT.Client
-	subscribes map[string]Subscribe
+	cfg            *Config
+	client         MQTT.Client
+	subscribesLock *sync.Mutex
+	subscribes     map[string]Subscribe
 }
 
 func NewClient(cfg *Config) (client *Client, err error) {
@@ -39,8 +41,9 @@ func NewClient(cfg *Config) (client *Client, err error) {
 	log.Infof("new queue client(%s) uri(%s)", cfg.ClientID, cfg.Broker)
 
 	client = &Client{
-		cfg:        cfg,
-		subscribes: make(map[string]Subscribe),
+		cfg:            cfg,
+		subscribesLock: &sync.Mutex{},
+		subscribes:     make(map[string]Subscribe),
 	}
 
 	opts := MQTT.NewClientOptions().
@@ -76,13 +79,18 @@ func (c *Client) Disconnect() {
 		return
 	}
 
-	c.UnsubscribeAll()
+	c.safeUnsubscribeAll()
+	c.subscribesLock.Lock()
 	c.subscribes = make(map[string]Subscribe)
+	c.subscribesLock.Unlock()
 	c.client.Disconnect(250)
 	c.client = nil
 }
 
 func (c *Client) Subscribe(topic string, qos byte, callback MQTT.MessageHandler) (err error) {
+
+	c.subscribesLock.Lock()
+	defer c.subscribesLock.Unlock()
 
 	if _, ok := c.subscribes[topic]; !ok {
 		c.subscribes[topic] = Subscribe{
@@ -107,7 +115,10 @@ func (c *Client) Unsubscribe(topic string) (err error) {
 	return
 }
 
-func (c *Client) UnsubscribeAll() {
+func (c *Client) safeUnsubscribeAll() {
+
+	c.subscribesLock.Lock()
+	defer c.subscribesLock.Unlock()
 
 	for topic, _ := range c.subscribes {
 		if token := c.client.Unsubscribe(topic); token.Error() != nil {
@@ -132,6 +143,9 @@ func (c *Client) onConnectionLostHandler(client MQTT.Client, e error) {
 
 	log.Debug("connection lost...")
 
+	c.subscribesLock.Lock()
+	defer c.subscribesLock.Unlock()
+
 	for topic, _ := range c.subscribes {
 		if token := c.client.Unsubscribe(topic); token.Error() != nil {
 			log.Error(token.Error().Error())
@@ -142,6 +156,9 @@ func (c *Client) onConnectionLostHandler(client MQTT.Client, e error) {
 func (c *Client) onConnect(client MQTT.Client) {
 
 	log.Debug("connected...")
+
+	c.subscribesLock.Lock()
+	defer c.subscribesLock.Unlock()
 
 	for topic, subscribe := range c.subscribes {
 		if token := c.client.Subscribe(topic, subscribe.Qos, subscribe.Callback); token.Wait() && token.Error() != nil {
