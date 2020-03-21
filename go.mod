@@ -8,6 +8,7 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.2.0
 	github.com/paulbellamy/ratecounter v0.2.0
 	github.com/pkg/errors v0.9.1 // indirect
+	go.uber.org/atomic v1.6.0
 	go.uber.org/dig v1.8.0
 	go.uber.org/zap v1.14.1
 	golang.org/x/lint v0.0.0-20200130185559-910be7a94367 // indirect

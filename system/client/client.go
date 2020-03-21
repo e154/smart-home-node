@@ -114,17 +114,9 @@ func (c *Client) Connect() {
 		log.Error(err.Error())
 	}
 
-LOOP:
-	if err = c.mqttClient.Connect(); err != nil {
-		log.Error(err.Error())
-	}
-
-	if !c.mqttClient.IsConnected() && !c.quit {
-		time.Sleep(time.Second)
-		goto LOOP
-	}
-
 	_ = c.mqttClient.Subscribe(c.topic("req"), 0, c.onPublish)
+
+	c.mqttClient.Connect()
 }
 
 func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {

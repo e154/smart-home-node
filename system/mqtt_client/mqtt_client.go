@@ -21,6 +21,7 @@ package mqtt_client
 import (
 	"github.com/e154/smart-home-node/common"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
+	"go.uber.org/atomic"
 	"sync"
 	"time"
 )
@@ -34,6 +35,8 @@ type Client struct {
 	client         MQTT.Client
 	subscribesLock *sync.Mutex
 	subscribes     map[string]Subscribe
+	inConnectProc  *atomic.Bool
+	disconnect     *atomic.Bool
 }
 
 func NewClient(cfg *Config) (client *Client, err error) {
@@ -44,6 +47,8 @@ func NewClient(cfg *Config) (client *Client, err error) {
 		cfg:            cfg,
 		subscribesLock: &sync.Mutex{},
 		subscribes:     make(map[string]Subscribe),
+		disconnect:     atomic.NewBool(false),
+		inConnectProc:  atomic.NewBool(false),
 	}
 
 	opts := MQTT.NewClientOptions().
@@ -63,15 +68,40 @@ func NewClient(cfg *Config) (client *Client, err error) {
 	return
 }
 
-func (c *Client) Connect() (err error) {
+func (c *Client) Connect() {
+
+	if c.inConnectProc.Load() {
+		return
+	}
+
+	c.inConnectProc.Store(true)
+
 
 	log.Infof("Connect to server %s", c.cfg.Broker)
 
-	if token := c.client.Connect(); token.Wait() && token.Error() != nil {
-		//log.Error(token.Error().Error())
-	}
+	go func() {
+		defer func() {
+			c.inConnectProc.Store(false)
+		}()
 
-	return
+	LOOP1:
+		token := c.client.Connect()
+
+	LOOP2:
+		token.Wait()
+
+		if err := token.Error(); err != nil {
+			time.Sleep(time.Second)
+			goto LOOP1
+		}
+
+		if c.disconnect.Load() {
+			return
+		}
+
+		time.Sleep(time.Second)
+		goto LOOP2
+	}()
 }
 
 func (c *Client) Disconnect() {
@@ -79,6 +109,7 @@ func (c *Client) Disconnect() {
 		return
 	}
 
+	c.disconnect.Store(true)
 	c.safeUnsubscribeAll()
 	c.subscribesLock.Lock()
 	c.subscribes = make(map[string]Subscribe)
