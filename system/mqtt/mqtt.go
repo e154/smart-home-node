@@ -20,13 +20,13 @@ package mqtt
 
 import (
 	"fmt"
+	"github.com/e154/smart-home-node/common"
 	"github.com/e154/smart-home-node/system/graceful_service"
 	"github.com/e154/smart-home-node/system/mqtt_client"
-	"github.com/op/go-logging"
 )
 
 var (
-	log = logging.MustGetLogger("mqtt")
+	log = common.MustGetLogger("mqtt")
 )
 
 type Mqtt struct {

@@ -22,12 +22,12 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"github.com/e154/smart-home-node/common"
 	"github.com/e154/smart-home-node/system/serial"
-	"github.com/op/go-logging"
 )
 
 var (
-	log = logging.MustGetLogger("smartbus/driver")
+	log = common.MustGetLogger("smartbus/driver")
 )
 
 const (
@@ -104,9 +104,9 @@ func (m *Smartbus) asciiReceiveFSM(b byte) (bool, error) {
 	case StateRxRcv:
 		if b == ':' {
 			m.rcvBuf = []byte{}
-			m.rcvBytePos = ByteHighNibble;
+			m.rcvBytePos = ByteHighNibble
 		} else if b == '\r' {
-			m.rcvState = StateRxWaitEof;
+			m.rcvState = StateRxWaitEof
 		} else {
 			b = char2bin(b)
 			switch m.rcvBytePos {
@@ -126,16 +126,16 @@ func (m *Smartbus) asciiReceiveFSM(b byte) (bool, error) {
 
 		} else if b == ':' {
 			m.rcvBuf = []byte{}
-			m.rcvBytePos = ByteHighNibble;
-			m.rcvState = StateRxRcv;
+			m.rcvBytePos = ByteHighNibble
+			m.rcvState = StateRxRcv
 		} else {
-			m.rcvState = StateRxIdle;
+			m.rcvState = StateRxIdle
 		}
 	case StateRxIdle:
 		if b == ':' {
 			m.rcvBuf = []byte{}
-			m.rcvBytePos = ByteHighNibble;
-			m.rcvState = StateRxRcv;
+			m.rcvBytePos = ByteHighNibble
+			m.rcvState = StateRxRcv
 		}
 	}
 
@@ -243,11 +243,11 @@ func char2bin(b byte) byte {
 	return 0xFF
 }
 
-func HI(b byte) (byte) {
+func HI(b byte) byte {
 	return (b >> 8) & 0xFF
 }
 
-func LOW(b byte) (byte) {
+func LOW(b byte) byte {
 	return b & 0x0F
 }
 

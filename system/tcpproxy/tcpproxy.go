@@ -81,7 +81,7 @@ func (p *TcpProxy) runServer() {
 
 	laddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf(":%d", p.cfg.ProxyPort))
 	if err != nil {
-		log.Warningf("Failed to resolve local address: %s", err)
+		log.Warnf("Failed to resolve local address: %s", err)
 		return
 	}
 
@@ -90,13 +90,13 @@ func (p *TcpProxy) runServer() {
 		if strings.Contains(err.Error(), "address already in use") {
 			return
 		}
-		log.Warningf("Failed to open local port to listen: %s", err)
+		log.Warnf("Failed to open local port to listen: %s", err)
 		return
 	}
 
 	raddr, err := net.ResolveTCPAddr("tcp", fmt.Sprintf("%s:%d", p.cfg.MqttIp, p.cfg.MqttPort))
 	if err != nil {
-		log.Warningf("Failed to resolve remote address: %s", err)
+		log.Warnf("Failed to resolve remote address: %s", err)
 		return
 	}
 
@@ -113,7 +113,7 @@ func (p *TcpProxy) runServer() {
 
 		conn, err := p.ln.AcceptTCP()
 		if err != nil {
-			log.Warningf("Failed to accept connection '%s'", err)
+			log.Warnf("Failed to accept connection '%s'", err)
 			continue
 		}
 

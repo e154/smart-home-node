@@ -19,13 +19,13 @@
 package mqtt_client
 
 import (
+	"github.com/e154/smart-home-node/common"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
-	"github.com/op/go-logging"
 	"time"
 )
 
 var (
-	log = logging.MustGetLogger("mqtt_client")
+	log = common.MustGetLogger("mqtt_client")
 )
 
 type Client struct {

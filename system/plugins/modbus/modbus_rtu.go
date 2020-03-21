@@ -24,12 +24,11 @@ import (
 	"github.com/e154/smart-home-node/common"
 	. "github.com/e154/smart-home-node/models/devices"
 	"github.com/e154/smart-home-node/system/plugins/modbus/driver"
-	"github.com/op/go-logging"
 	"time"
 )
 
 var (
-	log = logging.MustGetLogger("modbus")
+	log = common.MustGetLogger("modbus")
 )
 
 type ModbusRtu struct {

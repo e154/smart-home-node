@@ -90,7 +90,7 @@ func (t *Thread) SetParams(baud, timeout, stopBits int) (err error) {
 
 func (t *Thread) Open() (err error) {
 
-	log.Warningf("open device %s", t.Dev)
+	log.Warnf("open device %s", t.Dev)
 
 	t.serialDev = &serial.Serial{
 		Dev:         t.Dev,
@@ -100,7 +100,7 @@ func (t *Thread) Open() (err error) {
 	}
 
 	if _, err = t.serialDev.Open(); err != nil {
-		log.Warningf("%s - %s\r\n", t.Dev, err.Error())
+		log.Warnf("%s - %s\r\n", t.Dev, err.Error())
 		return
 	}
 
@@ -111,7 +111,7 @@ func (t *Thread) Open() (err error) {
 
 func (t *Thread) Close() {
 	if t.serialDev != nil {
-		log.Warningf("close device %s", t.Dev)
+		log.Warnf("close device %s", t.Dev)
 		t.serialDev.Close()
 	}
 	return

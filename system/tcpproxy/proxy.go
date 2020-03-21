@@ -20,13 +20,13 @@ package tcpproxy
 
 import (
 	"crypto/tls"
-	"github.com/op/go-logging"
+	"github.com/e154/smart-home-node/common"
 	"io"
 	"net"
 )
 
 var (
-	log = logging.MustGetLogger("tcpproxy")
+	log = common.MustGetLogger("tcpproxy")
 )
 
 // Proxy - Manages a Proxy connection, piping data between local and remote.
@@ -95,7 +95,7 @@ func (p *Proxy) Start() {
 		p.rconn, err = net.DialTCP("tcp", nil, p.raddr)
 	}
 	if err != nil {
-		log.Warningf("Remote connection failed: %s", err)
+		log.Warnf("Remote connection failed: %s", err)
 		return
 	}
 	defer func() {
@@ -128,7 +128,7 @@ func (p *Proxy) Start() {
 
 func (p *Proxy) Stop() {
 
-	if p.quit || p.closed{
+	if p.quit || p.closed {
 		return
 	}
 
@@ -142,7 +142,7 @@ func (p *Proxy) err(s string, err error) {
 		return
 	}
 	if err != io.EOF {
-		log.Warningf(s, err)
+		log.Warnf(s, err)
 	}
 	p.errsig <- true
 	p.erred = true
@@ -191,7 +191,7 @@ func (p *Proxy) pipe(src, dst io.ReadWriter) {
 
 		//show output
 		log.Debug(dataDirection, n, "")
-		log.Warningf(byteFormat, b)
+		log.Warnf(byteFormat, b)
 
 		//write out result
 		n, err = dst.Write(b)

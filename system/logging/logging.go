@@ -19,29 +19,78 @@
 package logging
 
 import (
+	m "github.com/e154/smart-home-node/models"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"os"
-	"github.com/sirupsen/logrus"
-	"github.com/olivere/elastic"
-	"github.com/op/go-logging"
+	"strings"
+	"sync"
 )
 
-var (
-	client *elastic.Client
-	log    = logrus.New()
-	format = logging.MustStringFormatter(
-		"SRT.%{module}.%{shortfile}.%{shortfunc}() > %{message}",
-	)
-)
-
-func Initialize(log *logrus.Logger) {
-
-	log.Out = os.Stdout
-
-	log1 := NewLogBackend(log)
-	log1F := logging.NewBackendFormatter(log1, format)
-	logging.SetBackend(log1F)
+type Logging struct {
+	logger     *zap.Logger
+	oldLogLock *sync.Mutex
+	oldLog     m.Log
 }
 
-func NewLogrus() *logrus.Logger {
-	return logrus.New()
+func NewLogger() (logging *Logging) {
+
+	// First, define our level-handling logic.
+	highPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return lvl >= zapcore.ErrorLevel
+	})
+	lowPriority := zap.LevelEnablerFunc(func(lvl zapcore.Level) bool {
+		return lvl < zapcore.ErrorLevel
+	})
+
+	// High-priority output should also go to standard error, and low-priority
+	// output should also go to standard out.
+	consoleDebugging := zapcore.Lock(os.Stdout)
+	consoleErrors := zapcore.Lock(os.Stderr)
+
+	config := zap.NewDevelopmentEncoderConfig()
+	config.EncodeTime = nil
+	config.EncodeLevel = CustomLevelEncoder
+	config.EncodeName = CustomNameEncoder
+	config.EncodeCaller = CustomCallerEncoder
+	consoleEncoder := zapcore.NewConsoleEncoder(config)
+
+	// Join the outputs, encoders, and level-handling functions into
+	// zapcore.Cores, then tee the four cores together.
+	core := zapcore.NewTee(
+		zapcore.NewCore(consoleEncoder, consoleErrors, highPriority),
+		zapcore.NewCore(consoleEncoder, consoleDebugging, lowPriority),
+	)
+
+	logging = &Logging{
+		oldLogLock: &sync.Mutex{},
+	}
+
+	logger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(1))
+
+	zap.ReplaceGlobals(logger)
+
+	logging.logger = logger
+
+	return
+}
+
+func CustomLevelEncoder(l zapcore.Level, enc zapcore.PrimitiveArrayEncoder) {
+	s, ok := _levelToCapitalColorString[l]
+	if !ok {
+		s = _unknownLevelColor.Add(l.CapitalString())
+	}
+	enc.AppendString(s)
+}
+
+//TODO fix
+func CustomNameEncoder(v string, enc zapcore.PrimitiveArrayEncoder) {
+	var builder strings.Builder
+	builder.WriteString(White.Add(v))
+	builder.WriteString("                                      ")
+	enc.AppendString(builder.String()[0:25])
+}
+
+func CustomCallerEncoder(caller zapcore.EntryCaller, enc zapcore.PrimitiveArrayEncoder) {
+	enc.AppendString(caller.TrimmedPath() + " >")
 }
