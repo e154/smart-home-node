@@ -152,7 +152,7 @@ __build() {
 
 __host_build() {
 
-    OUTPUT="server-linux-amd64"
+    OUTPUT="node-linux-amd64"
 
     echo ""
     echo "build command:"
