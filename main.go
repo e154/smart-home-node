@@ -55,14 +55,19 @@ func start() {
 	fmt.Printf(version.ShortVersionBanner, "")
 
 	container := BuildContainer()
-	container.Invoke(func(
+	err := container.Invoke(func(
 		graceful *graceful_service.GracefulService,
 		client *client.Client,
 		server *tcpproxy.TcpProxy,
 		logger *logging.Logging) {
 
 		client.Connect()
+		go server.Start()
 
 		graceful.Wait()
 	})
+
+	if err != nil {
+		panic(err.Error())
+	}
 }

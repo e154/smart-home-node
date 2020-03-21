@@ -32,7 +32,6 @@ import (
 	"github.com/e154/smart-home-node/system/plugins/smartbus"
 	"github.com/e154/smart-home-node/system/serial"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
-	"github.com/paulbellamy/ratecounter"
 	"sync"
 	"time"
 )
@@ -50,16 +49,16 @@ type Client struct {
 	Stat
 	cfg                 *config.AppConfig
 	mqtt                *mqtt.Mqtt
-	mqttClient          *mqtt_client.Client
 	updateThreadsTicker *time.Ticker
 	updatePinkTicker    *time.Ticker
 	status              common.ClientStatus
 	cache               *cache.Cache
-	startedAt           time.Time
 	serialService       *serial.SerialService
 	quit                bool
-	sync.Mutex
-	pool Threads
+	poolLocker          sync.Mutex
+	pool                Threads
+	mqttClientLocker    sync.Mutex
+	mqttClient          *mqtt_client.Client
 }
 
 func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService,
@@ -73,16 +72,14 @@ func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService
 		cfg:                 cfg,
 		updateThreadsTicker: time.NewTicker(threadTimeTick),
 		updatePinkTicker:    time.NewTicker(pingTimeTick),
-		pool:                make(Threads),
 		cache:               memCache,
 		status:              common.StatusEnabled,
-		startedAt:           time.Now(),
 		serialService:       serialService,
-		Stat: Stat{
-			rpsCounter: ratecounter.NewRateCounter(1 * time.Second),
-			avgRequest: ratecounter.NewAvgRateCounter(60 * time.Second),
-		},
-		mqtt: mqtt,
+		Stat:                NewStat(),
+		mqtt:                mqtt,
+		poolLocker:          sync.Mutex{},
+		pool:                make(Threads),
+		mqttClientLocker:    sync.Mutex{},
 	}
 
 	graceful.Subscribe(client)
@@ -108,6 +105,9 @@ func (c *Client) Shutdown() {
 }
 
 func (c *Client) Connect() {
+
+	c.mqttClientLocker.Lock()
+	defer c.mqttClientLocker.Unlock()
 
 	var err error
 	if c.mqttClient, err = c.mqtt.NewClient(nil); err != nil {
@@ -217,8 +217,8 @@ LOOP:
 
 func (c *Client) UpdateThreads() {
 
-	c.Lock()
-	defer c.Unlock()
+	c.poolLocker.Lock()
+	defer c.poolLocker.Unlock()
 
 	//log.Debug("update thread list")
 
@@ -280,14 +280,18 @@ func (c *Client) ping() {
 		}
 	}
 
+	c.mqttClientLocker.Lock()
+	defer c.mqttClientLocker.Unlock()
+
 	if c.mqttClient != nil && (c.mqttClient.IsConnected()) {
-		message := &common.ClientStatusModel{
+		snapshot := c.GetStat()
+		message := common.ClientStatusModel{
 			Status:    c.status,
 			Thread:    activeThreads,
-			Rps:       c.rpsCounter.Rate(),
-			Min:       c.min,
-			Max:       c.max,
-			StartedAt: c.startedAt,
+			Rps:       snapshot.Rps,
+			Min:       snapshot.Min,
+			Max:       snapshot.Max,
+			StartedAt: snapshot.StartedAt,
 		}
 		data, _ := json.Marshal(message)
 		c.mqttClient.Publish(c.topic("ping"), data)
