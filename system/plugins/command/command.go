@@ -19,14 +19,13 @@
 package command
 
 import (
-	"github.com/op/go-logging"
 	"encoding/json"
-	"github.com/e154/smart-home-node/models/devices"
 	"github.com/e154/smart-home-node/common"
+	"github.com/e154/smart-home-node/models/devices"
 )
 
 var (
-	log = logging.MustGetLogger("command")
+	log = common.MustGetLogger("command")
 )
 
 type Command struct {

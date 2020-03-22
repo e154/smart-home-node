@@ -19,14 +19,14 @@
 package cache
 
 import (
-	"github.com/astaxie/beego/cache"
 	"fmt"
+	"github.com/astaxie/beego/cache"
+	"github.com/e154/smart-home-node/common"
 	"time"
-	"github.com/op/go-logging"
 )
 
 var (
-	log = logging.MustGetLogger("cache")
+	log = common.MustGetLogger("cache")
 )
 
 type Cache struct {

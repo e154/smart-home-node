@@ -19,16 +19,15 @@
 package smartbus
 
 import (
-	"time"
-	"github.com/op/go-logging"
-	"github.com/e154/smart-home-node/models/devices"
-	"github.com/e154/smart-home-node/common"
 	"encoding/json"
+	"github.com/e154/smart-home-node/common"
+	"github.com/e154/smart-home-node/models/devices"
 	"github.com/e154/smart-home-node/system/plugins/smartbus/driver"
+	"time"
 )
 
 var (
-	log = logging.MustGetLogger("smartbus")
+	log = common.MustGetLogger("smartbus")
 )
 
 type Smartbus struct {
@@ -87,7 +86,7 @@ func (s *Smartbus) Exec(t common.Thread) (resp *common.MessageResponse, err erro
 		t.SetErr()
 
 		//errcode = "MODBUS_LINE_ERROR"
-		log.Warningf("%s - %s\r\n", t.Device(), err.Error())
+		log.Warnf("%s - %s\r\n", t.Device(), err.Error())
 		//TODO remove
 		if err.Error() == "ILLEGAL_LRC" {
 			err = nil

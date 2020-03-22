@@ -32,7 +32,7 @@ import (
 func BuildContainer() (container *dig.Container) {
 
 	container = dig.New()
-	container.Provide(logging.NewLogrus)
+	container.Provide(logging.NewLogger)
 	container.Provide(config.ReadConfig)
 	container.Provide(graceful_service.NewGracefulService)
 	container.Provide(graceful_service.NewGracefulServicePool)

@@ -32,7 +32,6 @@ import (
 	"github.com/e154/smart-home-node/system/plugins/smartbus"
 	"github.com/e154/smart-home-node/system/serial"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
-	"github.com/op/go-logging"
 	"sync"
 	"time"
 )
@@ -43,7 +42,7 @@ const (
 )
 
 var (
-	log = logging.MustGetLogger("client")
+	log = common.MustGetLogger("client")
 )
 
 type Client struct {
@@ -115,17 +114,9 @@ func (c *Client) Connect() {
 		log.Error(err.Error())
 	}
 
-LOOP:
-	if err = c.mqttClient.Connect(); err != nil {
-		log.Error(err.Error())
-	}
-
-	if !c.mqttClient.IsConnected() && !c.quit {
-		time.Sleep(time.Second)
-		goto LOOP
-	}
-
 	_ = c.mqttClient.Subscribe(c.topic("req"), 0, c.onPublish)
+
+	c.mqttClient.Connect()
 }
 
 func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
@@ -157,7 +148,7 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 		cmd := modbus.NewModbusTcp(c.ResponseFunc(cli), message)
 		cmd.Exec()
 	default:
-		log.Warningf("unknown message device type: %s", message.DeviceType)
+		log.Warnf("unknown message device type: %s", message.DeviceType)
 	}
 
 	c.avgEnd(startTime)
