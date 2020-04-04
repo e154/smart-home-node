@@ -34,11 +34,11 @@ type Smartbus struct {
 	params *devices.DevSmartBusConfig
 
 	command        []byte
-	respFunc       func(data []byte)
+	respFunc       func(deviceId int64, data []byte)
 	requestMessage *common.MessageRequest
 }
 
-func NewSmartbus(respFunc func(data []byte), requestMessage *common.MessageRequest) *Smartbus {
+func NewSmartbus(respFunc func(deviceId int64, data []byte), requestMessage *common.MessageRequest) *Smartbus {
 
 	params := &devices.DevSmartBusConfig{}
 	if err := json.Unmarshal(requestMessage.Properties, params); err != nil {
@@ -108,9 +108,9 @@ func (s *Smartbus) Exec(t common.Thread) (resp *common.MessageResponse, err erro
 	return
 }
 
-func (s *Smartbus) Send(item interface{}) {
+func (s *Smartbus) Send(deviceId int64, item interface{}) {
 	data, _ := json.Marshal(item)
-	s.respFunc(data)
+	s.respFunc(deviceId, data)
 }
 
 func (s *Smartbus) DeviceId() int64 {

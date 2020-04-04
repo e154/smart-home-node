@@ -59,7 +59,7 @@ const (
 
 type ThreadCaller interface {
 	Exec(t Thread) (resp *MessageResponse, err error)
-	Send(data interface{})
+	Send(deviceId int64, data interface{})
 	DeviceId() int64
 }
 

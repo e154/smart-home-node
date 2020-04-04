@@ -30,11 +30,11 @@ type ModbusTcp struct {
 	params *DevModBusTcpConfig
 
 	command        []byte
-	respFunc       func(data []byte)
+	respFunc       func(deviceId int64, data []byte)
 	requestMessage *common.MessageRequest
 }
 
-func NewModbusTcp(respFunc func(data []byte), requestMessage *common.MessageRequest) *ModbusTcp {
+func NewModbusTcp(respFunc func(deviceId int64, data []byte), requestMessage *common.MessageRequest) *ModbusTcp {
 
 	params := &DevModBusTcpConfig{}
 	if err := json.Unmarshal(requestMessage.Properties, params); err != nil {
@@ -120,14 +120,14 @@ func (s *ModbusTcp) Exec() (resp *common.MessageResponse, err error) {
 
 	//fmt.Println(string(q))
 
-	s.respFunc(q)
+	s.respFunc(s.requestMessage.DeviceId, q)
 
 	return
 }
 
-func (s *ModbusTcp) Send(item interface{}) {
+func (s *ModbusTcp) Send(deviceId int64, item interface{}) {
 	data, _ := json.Marshal(item)
-	s.respFunc(data)
+	s.respFunc(deviceId, data)
 }
 
 func (s *ModbusTcp) DeviceId() int64 {
