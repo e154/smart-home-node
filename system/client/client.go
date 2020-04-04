@@ -114,7 +114,7 @@ func (c *Client) Connect() {
 		log.Error(err.Error())
 	}
 
-	_ = c.mqttClient.Subscribe(c.topic("req"), 0, c.onPublish)
+	_ = c.mqttClient.Subscribe(c.topic("req/#"), 0, c.onPublish)
 
 	c.mqttClient.Connect()
 }
@@ -202,7 +202,7 @@ LOOP:
 		return
 	}
 
-	item.Send(resp)
+	item.Send(item.DeviceId(), resp)
 
 	return
 }
@@ -290,12 +290,12 @@ func (c *Client) ping() {
 	}
 }
 
-func (c *Client) ResponseFunc(cli MQTT.Client) func(data []byte) {
+func (c *Client) ResponseFunc(cli MQTT.Client) func(deviceId int64, data []byte) {
 
-	return func(data []byte) {
+	return func(deviceId int64, data []byte) {
 		// response
 		if cli.IsConnected() {
-			if token := cli.Publish(c.topic("resp"), 0x0, false, data); token.Wait() && token.Error() != nil {
+			if token := cli.Publish(c.topic(fmt.Sprintf("resp/device%d", deviceId)), 0x0, false, data); token.Wait() && token.Error() != nil {
 				log.Error(token.Error().Error())
 			}
 		}
@@ -303,5 +303,5 @@ func (c *Client) ResponseFunc(cli MQTT.Client) func(data []byte) {
 }
 
 func (c *Client) topic(r string) string {
-	return fmt.Sprintf("/home/node/%s/%s", c.cfg.MqttClientId, r)
+	return fmt.Sprintf("home/node/%s/%s", c.cfg.MqttClientId, r)
 }

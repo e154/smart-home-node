@@ -35,11 +35,11 @@ type ModbusRtu struct {
 	params *DevModBusRtuConfig
 
 	command        []byte
-	respFunc       func(data []byte)
+	respFunc       func(deviceId int64, data []byte)
 	requestMessage *common.MessageRequest
 }
 
-func NewModbusRtu(respFunc func(data []byte), requestMessage *common.MessageRequest) *ModbusRtu {
+func NewModbusRtu(respFunc func(deviceId int64, data []byte), requestMessage *common.MessageRequest) *ModbusRtu {
 
 	params := &DevModBusRtuConfig{}
 	if err := json.Unmarshal(requestMessage.Properties, params); err != nil {
@@ -170,9 +170,9 @@ LOOP:
 	return
 }
 
-func (s *ModbusRtu) Send(item interface{}) {
+func (s *ModbusRtu) Send(deviceId int64, item interface{}) {
 	data, _ := json.Marshal(item)
-	s.respFunc(data)
+	s.respFunc(deviceId, data)
 }
 
 func (s *ModbusRtu) DeviceId() int64 {
