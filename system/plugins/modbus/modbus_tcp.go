@@ -30,11 +30,11 @@ type ModbusTcp struct {
 	params *DevModBusTcpConfig
 
 	command        []byte
-	respFunc       func(deviceId int64, data []byte)
+	respFunc       func(entityId string, data []byte)
 	requestMessage *common.MessageRequest
 }
 
-func NewModbusTcp(respFunc func(deviceId int64, data []byte), requestMessage *common.MessageRequest) *ModbusTcp {
+func NewModbusTcp(respFunc func(entityId string, data []byte), requestMessage *common.MessageRequest) *ModbusTcp {
 
 	params := &DevModBusTcpConfig{}
 	if err := json.Unmarshal(requestMessage.Properties, params); err != nil {
@@ -52,7 +52,7 @@ func NewModbusTcp(respFunc func(deviceId int64, data []byte), requestMessage *co
 func (s *ModbusTcp) Exec() (resp *common.MessageResponse, err error) {
 
 	resp = &common.MessageResponse{
-		DeviceId:   s.requestMessage.DeviceId,
+		EntityId:   s.requestMessage.EntityId,
 		DeviceType: s.requestMessage.DeviceType,
 		Status:     "success",
 	}
@@ -120,16 +120,16 @@ func (s *ModbusTcp) Exec() (resp *common.MessageResponse, err error) {
 
 	//fmt.Println(string(q))
 
-	s.respFunc(s.requestMessage.DeviceId, q)
+	s.respFunc(s.requestMessage.EntityId, q)
 
 	return
 }
 
-func (s *ModbusTcp) Send(deviceId int64, item interface{}) {
+func (s *ModbusTcp) Send(entityId string, item interface{}) {
 	data, _ := json.Marshal(item)
-	s.respFunc(deviceId, data)
+	s.respFunc(entityId, data)
 }
 
-func (s *ModbusTcp) DeviceId() int64 {
-	return s.requestMessage.DeviceId
+func (s *ModbusTcp) EntityId() string {
+	return s.requestMessage.EntityId
 }

@@ -91,6 +91,7 @@ func (c *Client) Connect() {
 		token.Wait()
 
 		if err := token.Error(); err != nil {
+			log.Error(err.Error())
 			time.Sleep(time.Second)
 			goto LOOP1
 		}

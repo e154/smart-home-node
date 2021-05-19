@@ -29,13 +29,13 @@ var (
 )
 
 type Command struct {
-	respFunc       func(deviceId int64, data []byte)
+	respFunc       func(entityId string, data []byte)
 	name           string
 	args           []string
 	requestMessage *common.MessageRequest
 }
 
-func NewCommand(respFunc func(deviceId int64, data []byte), requestMessage *common.MessageRequest) (command *Command) {
+func NewCommand(respFunc func(entityId string, data []byte), requestMessage *common.MessageRequest) (command *Command) {
 
 	request := &devices.DevCommandRequest{}
 	json.Unmarshal(requestMessage.Command, request)
@@ -69,7 +69,7 @@ func (c Command) response(r *Response) {
 	}
 
 	response := &common.MessageResponse{
-		DeviceId:   c.requestMessage.DeviceId,
+		EntityId:   c.requestMessage.EntityId,
 		DeviceType: c.requestMessage.DeviceType,
 		Properties: c.requestMessage.Properties,
 		Response:   data,
@@ -81,5 +81,5 @@ func (c Command) response(r *Response) {
 	}
 
 	responseData, _ := json.Marshal(response)
-	c.respFunc(c.requestMessage.DeviceId, responseData)
+	c.respFunc(c.requestMessage.EntityId, responseData)
 }

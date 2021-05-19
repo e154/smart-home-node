@@ -58,6 +58,10 @@ func (m *Mqtt) Shutdown() {
 
 func (m *Mqtt) NewClient(cfg *mqtt_client.Config) (c *mqtt_client.Client, err error) {
 
+	fmt.Println("------------------")
+	fmt.Println(m.cfg.MqttUsername)
+	fmt.Println(m.cfg.MqttPassword)
+
 	if cfg == nil {
 		cfg = &mqtt_client.Config{
 			KeepAlive:      m.cfg.KeepAlive,

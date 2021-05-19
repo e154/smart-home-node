@@ -35,11 +35,11 @@ type ModbusRtu struct {
 	params *DevModBusRtuConfig
 
 	command        []byte
-	respFunc       func(deviceId int64, data []byte)
+	respFunc       func(entityId string, data []byte)
 	requestMessage *common.MessageRequest
 }
 
-func NewModbusRtu(respFunc func(deviceId int64, data []byte), requestMessage *common.MessageRequest) *ModbusRtu {
+func NewModbusRtu(respFunc func(entityId string, data []byte), requestMessage *common.MessageRequest) *ModbusRtu {
 
 	params := &DevModBusRtuConfig{}
 	if err := json.Unmarshal(requestMessage.Properties, params); err != nil {
@@ -66,7 +66,7 @@ func (s *ModbusRtu) Exec(t common.Thread) (resp *common.MessageResponse, err err
 	var firstTime bool
 
 	resp = &common.MessageResponse{
-		DeviceId:   s.requestMessage.DeviceId,
+		EntityId:   s.requestMessage.EntityId,
 		DeviceType: s.requestMessage.DeviceType,
 		Status:     "success",
 	}
@@ -170,13 +170,13 @@ LOOP:
 	return
 }
 
-func (s *ModbusRtu) Send(deviceId int64, item interface{}) {
+func (s *ModbusRtu) Send(entityId string, item interface{}) {
 	data, _ := json.Marshal(item)
-	s.respFunc(deviceId, data)
+	s.respFunc(entityId, data)
 }
 
-func (s *ModbusRtu) DeviceId() int64 {
-	return s.requestMessage.DeviceId
+func (s *ModbusRtu) EntityId() string {
+	return s.requestMessage.EntityId
 }
 
 func (s *ModbusRtu) Connect(device string) (handler *modbus.RTUClientHandler, err error) {

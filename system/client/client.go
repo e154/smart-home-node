@@ -29,7 +29,6 @@ import (
 	"github.com/e154/smart-home-node/system/mqtt_client"
 	"github.com/e154/smart-home-node/system/plugins/command"
 	"github.com/e154/smart-home-node/system/plugins/modbus"
-	"github.com/e154/smart-home-node/system/plugins/smartbus"
 	"github.com/e154/smart-home-node/system/serial"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"sync"
@@ -135,10 +134,6 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 	case common.DevTypeCommand:
 		cmd := command.NewCommand(c.ResponseFunc(cli), message)
 		cmd.Exec()
-	// smartbus plugin
-	case common.DevTypeSmartBus:
-		cmd := smartbus.NewSmartbus(c.ResponseFunc(cli), message)
-		c.SendMessageToThread(cmd)
 	// modbus rtu
 	case common.DevTypeModBusRtu:
 		cmd := modbus.NewModbusRtu(c.ResponseFunc(cli), message)
@@ -170,7 +165,7 @@ func (c *Client) SendMessageToThread(item common.ThreadCaller) (err error) {
 
 LOOP:
 	//поиск в кэше
-	cacheKey := c.cache.GetKey(fmt.Sprintf("%d_dev", item.DeviceId()))
+	cacheKey := c.cache.GetKey(fmt.Sprintf("%s_entityId", item.EntityId()))
 	var threadDev string
 	if c.cache.IsExist(cacheKey) {
 		threadDev = c.cache.Get(cacheKey).(string)
@@ -202,7 +197,7 @@ LOOP:
 		return
 	}
 
-	item.Send(item.DeviceId(), resp)
+	item.Send(item.EntityId(), resp)
 
 	return
 }
@@ -290,12 +285,12 @@ func (c *Client) ping() {
 	}
 }
 
-func (c *Client) ResponseFunc(cli MQTT.Client) func(deviceId int64, data []byte) {
+func (c *Client) ResponseFunc(cli MQTT.Client) func(entityId string, data []byte) {
 
-	return func(deviceId int64, data []byte) {
+	return func(entityId string, data []byte) {
 		// response
 		if cli.IsConnected() {
-			if token := cli.Publish(c.topic(fmt.Sprintf("resp/device%d", deviceId)), 0x0, false, data); token.Wait() && token.Error() != nil {
+			if token := cli.Publish(c.topic(fmt.Sprintf("resp/%s", entityId)), 0x0, false, data); token.Wait() && token.Error() != nil {
 				log.Error(token.Error().Error())
 			}
 		}

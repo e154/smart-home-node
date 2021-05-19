@@ -24,14 +24,14 @@ import (
 )
 
 type MessageRequest struct {
-	DeviceId   int64           `json:"device_id"`
+	EntityId   string          `json:"entity_id"`
 	DeviceType DeviceType      `json:"device_type"`
 	Properties json.RawMessage `json:"properties" valid:"Required"`
 	Command    json.RawMessage `json:"command"`
 }
 
 type MessageResponse struct {
-	DeviceId   int64           `json:"device_id"`
+	EntityId   string          `json:"entity_id"`
 	DeviceType DeviceType      `json:"device_type"`
 	Properties json.RawMessage `json:"properties"`
 	Response   json.RawMessage `json:"response"`
