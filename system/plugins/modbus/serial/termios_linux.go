@@ -16,6 +16,7 @@
 // License along with this library.  If not, see
 // <https://www.gnu.org/licenses/>.
 
+//go:build !mips && !mipsle && !mips64 && !mips64le
 // +build !mips,!mipsle,!mips64,!mips64le
 
 package serial

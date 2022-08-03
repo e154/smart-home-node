@@ -19,14 +19,16 @@
 package mqtt
 
 import (
+	"context"
 	"fmt"
-	"github.com/e154/smart-home-node/common"
-	"github.com/e154/smart-home-node/system/graceful_service"
+
+	"github.com/e154/smart-home-node/common/logger"
 	"github.com/e154/smart-home-node/system/mqtt_client"
+	"go.uber.org/fx"
 )
 
 var (
-	log = common.MustGetLogger("mqtt")
+	log = logger.MustGetLogger("mqtt")
 )
 
 type Mqtt struct {
@@ -34,18 +36,28 @@ type Mqtt struct {
 	clients []*mqtt_client.Client
 }
 
-func NewMqtt(cfg *MqttConfig,
-	graceful *graceful_service.GracefulService) (mqtt *Mqtt) {
+func NewMqtt(lc fx.Lifecycle, cfg *MqttConfig) (mqtt *Mqtt) {
 	mqtt = &Mqtt{
 		cfg: cfg,
 	}
 
-	graceful.Subscribe(mqtt)
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) (err error) {
+			return mqtt.Start()
+		},
+		OnStop: func(ctx context.Context) (err error) {
+			return mqtt.Shutdown()
+		},
+	})
 
 	return
 }
 
-func (m *Mqtt) Shutdown() {
+func (m *Mqtt) Start() error {
+	return nil
+}
+
+func (m *Mqtt) Shutdown() error {
 	for _, client := range m.clients {
 		if client == nil {
 			continue
@@ -54,6 +66,8 @@ func (m *Mqtt) Shutdown() {
 	}
 
 	log.Info("Server exiting")
+
+	return nil
 }
 
 func (m *Mqtt) NewClient(cfg *mqtt_client.Config) (c *mqtt_client.Client, err error) {

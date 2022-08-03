@@ -30,10 +30,8 @@ const (
 type DeviceType string
 
 const (
-	DevTypeSmartBus  = DeviceType("smartbus")
 	DevTypeModBusRtu = DeviceType("modbus_rtu")
 	DevTypeModBusTcp = DeviceType("modbus_tcp")
-	DevTypeZigbee    = DeviceType("zigbee")
 	DevTypeDefault   = DeviceType("default")
 	DevTypeCommand   = DeviceType("command")
 )
@@ -59,8 +57,8 @@ const (
 
 type ThreadCaller interface {
 	Exec(t Thread) (resp *MessageResponse, err error)
-	Send(data interface{})
-	DeviceId() int64
+	Send(entityId string, data interface{})
+	EntityId() string
 }
 
 type Thread interface {

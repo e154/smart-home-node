@@ -20,22 +20,24 @@ package command
 
 import (
 	"encoding/json"
+
 	"github.com/e154/smart-home-node/common"
+	"github.com/e154/smart-home-node/common/logger"
 	"github.com/e154/smart-home-node/models/devices"
 )
 
 var (
-	log = common.MustGetLogger("command")
+	log = logger.MustGetLogger("command")
 )
 
 type Command struct {
-	respFunc       func(data []byte)
+	respFunc       func(entityId string, data []byte)
 	name           string
 	args           []string
 	requestMessage *common.MessageRequest
 }
 
-func NewCommand(respFunc func(data []byte), requestMessage *common.MessageRequest) (command *Command) {
+func NewCommand(respFunc func(entityId string, data []byte), requestMessage *common.MessageRequest) (command *Command) {
 
 	request := &devices.DevCommandRequest{}
 	json.Unmarshal(requestMessage.Command, request)
@@ -69,7 +71,7 @@ func (c Command) response(r *Response) {
 	}
 
 	response := &common.MessageResponse{
-		DeviceId:   c.requestMessage.DeviceId,
+		EntityId:   c.requestMessage.EntityId,
 		DeviceType: c.requestMessage.DeviceType,
 		Properties: c.requestMessage.Properties,
 		Response:   data,
@@ -81,5 +83,5 @@ func (c Command) response(r *Response) {
 	}
 
 	responseData, _ := json.Marshal(response)
-	c.respFunc(responseData)
+	c.respFunc(c.requestMessage.EntityId, responseData)
 }

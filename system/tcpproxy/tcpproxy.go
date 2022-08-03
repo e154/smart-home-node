@@ -19,14 +19,16 @@
 package tcpproxy
 
 import (
+	"context"
 	"fmt"
-	"github.com/e154/smart-home-node/system/config"
-	"github.com/e154/smart-home-node/system/graceful_service"
-	"github.com/e154/smart-home-node/system/uuid"
 	"net"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/e154/smart-home-node/system/config"
+	"github.com/e154/smart-home-node/system/uuid"
+	"go.uber.org/fx"
 )
 
 type TcpProxy struct {
@@ -37,27 +39,36 @@ type TcpProxy struct {
 	clients map[string]*Proxy
 }
 
-func NewTcpProxy(cfg *config.AppConfig,
-	graceful *graceful_service.GracefulService) *TcpProxy {
+func NewTcpProxy(lc fx.Lifecycle, cfg *config.AppConfig) *TcpProxy {
 	proxy := &TcpProxy{
 		cfg:     cfg,
 		quit:    make(chan struct{}),
 		mx:      sync.Mutex{},
 		clients: make(map[string]*Proxy),
 	}
-	graceful.Subscribe(proxy)
+
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) (err error) {
+			return proxy.Start()
+		},
+		OnStop: func(ctx context.Context) (err error) {
+			return proxy.Shutdown()
+		},
+	})
+
 	return proxy
 }
 
-func (p *TcpProxy) Start() {
-	p.runServer()
+func (p *TcpProxy) Start() error {
+	go p.runServer()
+	return nil
 }
 
-func (p *TcpProxy) Shutdown() {
+func (p *TcpProxy) Shutdown() error {
 	log.Info("Shutdown")
 
 	if p.ln == nil {
-		return
+		return nil
 	}
 
 	if err := p.ln.Close(); err != nil {
@@ -68,7 +79,7 @@ func (p *TcpProxy) Shutdown() {
 
 	count := len(p.clients)
 	if count == 0 {
-		return
+		return nil
 	}
 
 	log.Infof("total clients %d", count)
@@ -78,6 +89,7 @@ func (p *TcpProxy) Shutdown() {
 			cli.Stop()
 		}
 	}
+	return nil
 }
 
 func (p *TcpProxy) runServer() {

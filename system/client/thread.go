@@ -21,6 +21,7 @@ package client
 import (
 	"sync"
 	"time"
+
 	"github.com/e154/smart-home-node/common"
 	"github.com/e154/smart-home-node/system/serial"
 )

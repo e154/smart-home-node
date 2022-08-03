@@ -14,8 +14,8 @@ Smart home node
 
 |Branch      |Status   |
 |------------|---------|
-|master      | [![Build Status](https://travis-ci.org/e154/smart-home-node.svg?branch=master)](https://travis-ci.org/e154/smart-home-node?branch=master)   |
-|dev         | [![Build Status](https://travis-ci.org/e154/smart-home-node.svg?branch=develop)](https://travis-ci.org/e154/smart-home-node?branch=develop) |
+|master      | ![Build Status](https://github.com/e154/smart-home-node/actions/workflows/test.yml/badge.svg?branch=master)  |
+|dev         | ![Build Status](https://github.com/e154/smart-home-node/actions/workflows/test.yml/badge.svg?branch=develop) |
 
 
 Attention! The project is under active development.

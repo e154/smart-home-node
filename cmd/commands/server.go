@@ -1,6 +1,6 @@
 // This file is part of the Smart Home
 // Program complex distribution https://github.com/e154/smart-home
-// Copyright (C) 2016-2020, Filippov Alex
+// Copyright (C) 2016-2021, Filippov Alex
 //
 // This library is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -16,32 +16,45 @@
 // License along with this library.  If not, see
 // <https://www.gnu.org/licenses/>.
 
-package main
+package commands
 
 import (
+	"fmt"
+
 	"github.com/e154/smart-home-node/system/client"
-	"github.com/e154/smart-home-node/system/config"
-	"github.com/e154/smart-home-node/system/graceful_service"
-	"github.com/e154/smart-home-node/system/logging"
-	"github.com/e154/smart-home-node/system/mqtt"
-	"github.com/e154/smart-home-node/system/serial"
 	"github.com/e154/smart-home-node/system/tcpproxy"
-	"go.uber.org/dig"
+
+	"github.com/spf13/cobra"
+	"go.uber.org/fx"
+
+	. "github.com/e154/smart-home-node/cmd/container"
+	. "github.com/e154/smart-home-node/common"
+	"github.com/e154/smart-home-node/system/logging"
+	"github.com/e154/smart-home-node/version"
 )
 
-func BuildContainer() (container *dig.Container) {
+var (
+	// Server ...
+	Server = &cobra.Command{
+		Use:   "server",
+		Short: fmt.Sprintf(version.ShortVersionBanner, ""),
+		Run: func(cmd *cobra.Command, args []string) {
 
-	container = dig.New()
-	container.Provide(logging.NewLogger)
-	container.Provide(config.ReadConfig)
-	container.Provide(graceful_service.NewGracefulService)
-	container.Provide(graceful_service.NewGracefulServicePool)
-	container.Provide(graceful_service.NewGracefulServiceConfig)
-	container.Provide(mqtt.NewMqtt)
-	container.Provide(mqtt.NewMqttConfig)
-	container.Provide(client.NewClient)
-	container.Provide(serial.NewSerialService)
-	container.Provide(tcpproxy.NewTcpProxy)
+			fmt.Printf(version.ShortVersionBanner, "")
+			app := BuildContainer(fx.Invoke(func(_ *logging.Logging,
+				_ *client.Client,
+				_ *tcpproxy.TcpProxy) {
+			}))
 
-	return
+			Start(app)
+
+			Work()
+
+			Stop(app)
+		},
+	}
+)
+
+func init() {
+	Server.AddCommand(versionCmd)
 }

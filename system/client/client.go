@@ -19,21 +19,23 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/e154/smart-home-node/common"
+	"github.com/e154/smart-home-node/common/logger"
 	"github.com/e154/smart-home-node/system/cache"
 	"github.com/e154/smart-home-node/system/config"
-	"github.com/e154/smart-home-node/system/graceful_service"
 	"github.com/e154/smart-home-node/system/mqtt"
 	"github.com/e154/smart-home-node/system/mqtt_client"
 	"github.com/e154/smart-home-node/system/plugins/command"
 	"github.com/e154/smart-home-node/system/plugins/modbus"
-	"github.com/e154/smart-home-node/system/plugins/smartbus"
 	"github.com/e154/smart-home-node/system/serial"
 	MQTT "github.com/eclipse/paho.mqtt.golang"
-	"sync"
-	"time"
+	"go.uber.org/fx"
 )
 
 const (
@@ -42,7 +44,7 @@ const (
 )
 
 var (
-	log = common.MustGetLogger("client")
+	log = logger.MustGetLogger("client")
 )
 
 type Client struct {
@@ -54,54 +56,74 @@ type Client struct {
 	status              common.ClientStatus
 	cache               *cache.Cache
 	serialService       *serial.SerialService
-	quit                bool
 	poolLocker          sync.Mutex
 	pool                Threads
 	mqttClientLocker    sync.Mutex
 	mqttClient          *mqtt_client.Client
 }
 
-func NewClient(cfg *config.AppConfig, graceful *graceful_service.GracefulService,
-	mqtt *mqtt.Mqtt, serialService *serial.SerialService) *Client {
+func NewClient(lc fx.Lifecycle,
+	cfg *config.AppConfig,
+	mqtt *mqtt.Mqtt,
+	serialService *serial.SerialService) *Client {
 
 	memCache := &cache.Cache{
 		Cachetime: 3600,
 		Name:      "node",
 	}
 	client := &Client{
-		cfg:                 cfg,
-		updateThreadsTicker: time.NewTicker(threadTimeTick),
-		updatePinkTicker:    time.NewTicker(pingTimeTick),
-		cache:               memCache,
-		status:              common.StatusEnabled,
-		serialService:       serialService,
-		Stat:                NewStat(),
-		mqtt:                mqtt,
-		poolLocker:          sync.Mutex{},
-		pool:                make(Threads),
-		mqttClientLocker:    sync.Mutex{},
+		cfg:              cfg,
+		cache:            memCache,
+		status:           common.StatusEnabled,
+		serialService:    serialService,
+		Stat:             NewStat(),
+		mqtt:             mqtt,
+		poolLocker:       sync.Mutex{},
+		pool:             make(Threads),
+		mqttClientLocker: sync.Mutex{},
 	}
 
-	graceful.Subscribe(client)
-
-	go func() {
-		for {
-			select {
-			case <-client.updatePinkTicker.C:
-				client.ping()
-			case <-client.updateThreadsTicker.C:
-				client.UpdateThreads()
-			}
-		}
-	}()
+	lc.Append(fx.Hook{
+		OnStart: func(ctx context.Context) (err error) {
+			return client.Start()
+		},
+		OnStop: func(ctx context.Context) (err error) {
+			return client.Shutdown()
+		},
+	})
 
 	return client
 }
 
-func (c *Client) Shutdown() {
-	c.quit = true
-	c.updateThreadsTicker.Stop()
-	c.updatePinkTicker.Stop()
+func (c *Client) Start() error {
+
+	c.updateThreadsTicker = time.NewTicker(threadTimeTick)
+	c.updatePinkTicker = time.NewTicker(pingTimeTick)
+
+	go func() {
+		for {
+			select {
+			case <-c.updatePinkTicker.C:
+				c.ping()
+			case <-c.updateThreadsTicker.C:
+				c.UpdateThreads()
+			}
+		}
+	}()
+
+	c.Connect()
+
+	return nil
+}
+
+func (c *Client) Shutdown() error {
+	if c.updateThreadsTicker != nil {
+		c.updateThreadsTicker.Stop()
+	}
+	if c.updatePinkTicker != nil {
+		c.updatePinkTicker.Stop()
+	}
+	return nil
 }
 
 func (c *Client) Connect() {
@@ -114,17 +136,9 @@ func (c *Client) Connect() {
 		log.Error(err.Error())
 	}
 
-LOOP:
-	if err = c.mqttClient.Connect(); err != nil {
-		log.Error(err.Error())
-	}
+	_ = c.mqttClient.Subscribe(c.topic("req/#"), 0, c.onPublish)
 
-	if !c.mqttClient.IsConnected() && !c.quit {
-		time.Sleep(time.Second)
-		goto LOOP
-	}
-
-	_ = c.mqttClient.Subscribe(c.topic("req"), 0, c.onPublish)
+	c.mqttClient.Connect()
 }
 
 func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
@@ -143,10 +157,6 @@ func (c *Client) onPublish(cli MQTT.Client, msg MQTT.Message) {
 	case common.DevTypeCommand:
 		cmd := command.NewCommand(c.ResponseFunc(cli), message)
 		cmd.Exec()
-	// smartbus plugin
-	case common.DevTypeSmartBus:
-		cmd := smartbus.NewSmartbus(c.ResponseFunc(cli), message)
-		c.SendMessageToThread(cmd)
 	// modbus rtu
 	case common.DevTypeModBusRtu:
 		cmd := modbus.NewModbusRtu(c.ResponseFunc(cli), message)
@@ -178,7 +188,7 @@ func (c *Client) SendMessageToThread(item common.ThreadCaller) (err error) {
 
 LOOP:
 	//поиск в кэше
-	cacheKey := c.cache.GetKey(fmt.Sprintf("%d_dev", item.DeviceId()))
+	cacheKey := c.cache.GetKey(fmt.Sprintf("%s_entityId", item.EntityId()))
 	var threadDev string
 	if c.cache.IsExist(cacheKey) {
 		threadDev = c.cache.Get(cacheKey).(string)
@@ -210,7 +220,7 @@ LOOP:
 		return
 	}
 
-	item.Send(resp)
+	item.Send(item.EntityId(), resp)
 
 	return
 }
@@ -291,6 +301,7 @@ func (c *Client) ping() {
 			Rps:       snapshot.Rps,
 			Min:       snapshot.Min,
 			Max:       snapshot.Max,
+			Latency:   snapshot.Latency,
 			StartedAt: snapshot.StartedAt,
 		}
 		data, _ := json.Marshal(message)
@@ -298,12 +309,12 @@ func (c *Client) ping() {
 	}
 }
 
-func (c *Client) ResponseFunc(cli MQTT.Client) func(data []byte) {
+func (c *Client) ResponseFunc(cli MQTT.Client) func(entityId string, data []byte) {
 
-	return func(data []byte) {
+	return func(entityId string, data []byte) {
 		// response
 		if cli.IsConnected() {
-			if token := cli.Publish(c.topic("resp"), 0x0, false, data); token.Wait() && token.Error() != nil {
+			if token := cli.Publish(c.topic(fmt.Sprintf("resp/%s", entityId)), 0x0, false, data); token.Wait() && token.Error() != nil {
 				log.Error(token.Error().Error())
 			}
 		}
@@ -311,5 +322,5 @@ func (c *Client) ResponseFunc(cli MQTT.Client) func(data []byte) {
 }
 
 func (c *Client) topic(r string) string {
-	return fmt.Sprintf("/home/node/%s/%s", c.cfg.MqttClientId, r)
+	return fmt.Sprintf("home/node/%s/%s", c.cfg.MqttClientId, r)
 }

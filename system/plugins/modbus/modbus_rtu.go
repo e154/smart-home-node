@@ -21,25 +21,27 @@ package modbus
 import (
 	"encoding/binary"
 	"encoding/json"
-	"github.com/e154/smart-home-node/common"
-	. "github.com/e154/smart-home-node/models/devices"
-	"github.com/e154/smart-home-node/system/plugins/modbus/driver"
 	"time"
+
+	"github.com/e154/smart-home-node/common"
+	"github.com/e154/smart-home-node/common/logger"
+	. "github.com/e154/smart-home-node/models/devices"
+	modbus "github.com/e154/smart-home-node/system/plugins/modbus/driver"
 )
 
 var (
-	log = common.MustGetLogger("modbus")
+	log = logger.MustGetLogger("modbus")
 )
 
 type ModbusRtu struct {
 	params *DevModBusRtuConfig
 
 	command        []byte
-	respFunc       func(data []byte)
+	respFunc       func(entityId string, data []byte)
 	requestMessage *common.MessageRequest
 }
 
-func NewModbusRtu(respFunc func(data []byte), requestMessage *common.MessageRequest) *ModbusRtu {
+func NewModbusRtu(respFunc func(entityId string, data []byte), requestMessage *common.MessageRequest) *ModbusRtu {
 
 	params := &DevModBusRtuConfig{}
 	if err := json.Unmarshal(requestMessage.Properties, params); err != nil {
@@ -66,7 +68,7 @@ func (s *ModbusRtu) Exec(t common.Thread) (resp *common.MessageResponse, err err
 	var firstTime bool
 
 	resp = &common.MessageResponse{
-		DeviceId:   s.requestMessage.DeviceId,
+		EntityId:   s.requestMessage.EntityId,
 		DeviceType: s.requestMessage.DeviceType,
 		Status:     "success",
 	}
@@ -170,13 +172,13 @@ LOOP:
 	return
 }
 
-func (s *ModbusRtu) Send(item interface{}) {
+func (s *ModbusRtu) Send(entityId string, item interface{}) {
 	data, _ := json.Marshal(item)
-	s.respFunc(data)
+	s.respFunc(entityId, data)
 }
 
-func (s *ModbusRtu) DeviceId() int64 {
-	return s.requestMessage.DeviceId
+func (s *ModbusRtu) EntityId() string {
+	return s.requestMessage.EntityId
 }
 
 func (s *ModbusRtu) Connect(device string) (handler *modbus.RTUClientHandler, err error) {

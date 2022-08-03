@@ -1,6 +1,6 @@
 // This file is part of the Smart Home
 // Program complex distribution https://github.com/e154/smart-home
-// Copyright (C) 2016-2020, Filippov Alex
+// Copyright (C) 2016-2021, Filippov Alex
 //
 // This library is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -16,25 +16,21 @@
 // License along with this library.  If not, see
 // <https://www.gnu.org/licenses/>.
 
-package smartbus
+package commands
 
-import "time"
+import (
+	"fmt"
 
-type Request struct {
-	Line     string        `json:"line"`
-	Device   string        `json:"device"`
-	Baud     int           `json:"baud"`
-	StopBits int           `json:"stop_bits"`
-	Sleep    int64         `json:"sleep"`
-	Timeout  time.Duration `json:"timeout"`
-	Command  []byte        `json:"command"`
-	Result   bool          `json:"result"`
-}
+	"github.com/e154/smart-home-node/version"
+	"github.com/spf13/cobra"
+)
 
-type Result struct {
-	Command   []byte `json:"command"`
-	Device    string `json:"device"`
-	Result    string `json:"result"`
-	Error     string `json:"error"`
-	ErrorCode string `json:"error_code"`
-}
+var (
+	versionCmd = &cobra.Command{
+		Use:   "version",
+		Short: "The current version of the smart-home-node software package",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf(version.ShortVersionBanner, version.GetHumanVersion())
+		},
+	}
+)

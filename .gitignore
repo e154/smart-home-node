@@ -4,3 +4,5 @@ vendor/*
 .idea
 /smart-home-node
 tmp
+node-linux-amd64
+bee.json

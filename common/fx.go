@@ -1,6 +1,6 @@
 // This file is part of the Smart Home
 // Program complex distribution https://github.com/e154/smart-home
-// Copyright (C) 2016-2020, Filippov Alex
+// Copyright (C) 2016-2021, Filippov Alex
 //
 // This library is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -16,20 +16,42 @@
 // License along with this library.  If not, see
 // <https://www.gnu.org/licenses/>.
 
-package devices
+package common
 
-type DevSmartBusConfig struct {
-	Baud     int `json:"baud" valid:"Required"`
-	Device   int `json:"device"`
-	Timeout  int `json:"timeout" valid:"Required"`
-	StopBits int `json:"stop_bits" valid:"Required" mapstructure:"stop_bits"`
-	Sleep    int `json:"sleep"`
+import (
+	"context"
+	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"go.uber.org/fx"
+)
+
+// Start ...
+func Start(app *fx.App) {
+	startCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if err := app.Start(startCtx); err != nil {
+		fmt.Println("fx error:", err.Error())
+		return
+	}
 }
 
-type DevSmartBusRequest struct {
-	Command []byte `json:"command"`
+// Work ...
+func Work() {
+	var gracefulStop = make(chan os.Signal, 10)
+	signal.Notify(gracefulStop, syscall.SIGINT, syscall.SIGTERM)
+
+	<-gracefulStop
 }
-type DevSmartBusResponse struct {
-	BaseResponse
-	Result []byte `json:"result"`
+
+// Stop ...
+func Stop(app *fx.App) {
+	stopCtx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if err := app.Stop(stopCtx); err != nil {
+		fmt.Println("fx error:", err.Error())
+	}
 }

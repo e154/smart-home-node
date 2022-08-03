@@ -16,6 +16,7 @@
 // License along with this library.  If not, see
 // <https://www.gnu.org/licenses/>.
 
+//go:build ignore
 // +build ignore
 
 package serial

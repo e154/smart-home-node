@@ -16,6 +16,7 @@
 // License along with this library.  If not, see
 // <https://www.gnu.org/licenses/>.
 
+//go:build freebsd || openbsd || netbsd
 // +build freebsd openbsd netbsd
 
 package serial

@@ -16,8 +16,8 @@
 // License along with this library.  If not, see
 // <https://www.gnu.org/licenses/>.
 
-// +build darwin
-// +build amd64
+//go:build darwin && amd64
+// +build darwin,amd64
 
 package serial
 

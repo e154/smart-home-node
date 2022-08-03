@@ -21,20 +21,21 @@ package modbus
 import (
 	"encoding/binary"
 	"encoding/json"
+
 	"github.com/e154/smart-home-node/common"
 	. "github.com/e154/smart-home-node/models/devices"
-	"github.com/e154/smart-home-node/system/plugins/modbus/driver"
+	modbus "github.com/e154/smart-home-node/system/plugins/modbus/driver"
 )
 
 type ModbusTcp struct {
 	params *DevModBusTcpConfig
 
 	command        []byte
-	respFunc       func(data []byte)
+	respFunc       func(entityId string, data []byte)
 	requestMessage *common.MessageRequest
 }
 
-func NewModbusTcp(respFunc func(data []byte), requestMessage *common.MessageRequest) *ModbusTcp {
+func NewModbusTcp(respFunc func(entityId string, data []byte), requestMessage *common.MessageRequest) *ModbusTcp {
 
 	params := &DevModBusTcpConfig{}
 	if err := json.Unmarshal(requestMessage.Properties, params); err != nil {
@@ -52,7 +53,7 @@ func NewModbusTcp(respFunc func(data []byte), requestMessage *common.MessageRequ
 func (s *ModbusTcp) Exec() (resp *common.MessageResponse, err error) {
 
 	resp = &common.MessageResponse{
-		DeviceId:   s.requestMessage.DeviceId,
+		EntityId:   s.requestMessage.EntityId,
 		DeviceType: s.requestMessage.DeviceType,
 		Status:     "success",
 	}
@@ -64,6 +65,8 @@ func (s *ModbusTcp) Exec() (resp *common.MessageResponse, err error) {
 		resp.Status = "error"
 		return
 	}
+
+	log.Debugf("command func(%s) address(%d), count(%d), command(%v)", request.Function, request.Address, request.Count, request.Command)
 
 	// set value
 	value := make([]byte, 0)
@@ -100,7 +103,7 @@ func (s *ModbusTcp) Exec() (resp *common.MessageResponse, err error) {
 
 	if err != nil {
 		resp.Status = "error"
-		//log.Error(err.Error())
+		log.Error(err.Error())
 		r.Error = err.Error()
 	}
 
@@ -118,18 +121,18 @@ func (s *ModbusTcp) Exec() (resp *common.MessageResponse, err error) {
 	resp.Response, _ = json.Marshal(r)
 	q, _ := json.Marshal(resp)
 
-	//fmt.Println(string(q))
+	//log.Debugf("result: %v", r.Result)
 
-	s.respFunc(q)
+	s.respFunc(s.requestMessage.EntityId, q)
 
 	return
 }
 
-func (s *ModbusTcp) Send(item interface{}) {
+func (s *ModbusTcp) Send(entityId string, item interface{}) {
 	data, _ := json.Marshal(item)
-	s.respFunc(data)
+	s.respFunc(entityId, data)
 }
 
-func (s *ModbusTcp) DeviceId() int64 {
-	return s.requestMessage.DeviceId
+func (s *ModbusTcp) EntityId() string {
+	return s.requestMessage.EntityId
 }
