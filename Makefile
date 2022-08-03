@@ -92,12 +92,11 @@ build_structure:
 	cp ${ROOT}/README* ${TMP_DIR}
 	cp ${ROOT}/contributors.txt ${TMP_DIR}
 	cp ${ROOT}/bin/docker/Dockerfile ${TMP_DIR}
-	chmod +x ${TMP_DIR}/data/scripts/ping.sh
 	cp ${ROOT}/${EXEC}-linux-amd64 ${TMP_DIR}
 	cp ${ROOT}/${EXEC}-linux-arm-7 ${TMP_DIR}
 	cp ${ROOT}/${EXEC}-linux-arm-6 ${TMP_DIR}
 	cp ${ROOT}/${EXEC}-linux-arm-5 ${TMP_DIR}
-	cp ${ROOT}/${EXEC}-darwin-10.6-amd64 ${TMP_DIR}
+	#cp ${ROOT}/${EXEC}-darwin-10.6-amd64 ${TMP_DIR}
 	cp ${ROOT}/bin/node ${TMP_DIR}
 
 build_archive:
@@ -122,5 +121,5 @@ clean:
 	rm -f ${ROOT}/${EXEC}-linux-arm-7
 	rm -f ${ROOT}/${EXEC}-linux-arm-6
 	rm -f ${ROOT}/${EXEC}-linux-arm-5
-	rm -f ${ROOT}/${EXEC}-darwin-10.6-amd64
+	#rm -f ${ROOT}/${EXEC}-darwin-10.6-amd64
 	rm -f ${HOME}/${ARCHIVE}
