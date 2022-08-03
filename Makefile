@@ -37,15 +37,6 @@ GO_BUILD_FLAGS= -a -installsuffix cgo -v --ldflags '${GO_BUILD_LDFLAGS}'
 GO_BUILD_ENV= CGO_ENABLED=0
 GO_BUILD_TAGS= -tags 'production'
 
-test_system:
-	@echo MARK: system tests
-	cp ${ROOT}/conf/config.dev.json ${ROOT}/conf/config.json
-	go test -v ./tests/api
-	go test -v ./tests/models
-	go test -v ./tests/plugins
-	go test -v ./tests/scripts
-	go test -v ./tests/system
-
 test:
 	@echo MARK: unit tests
 	go test $(go list ./... | grep -v /tests/)
