@@ -11,6 +11,7 @@ env:
   TRAVIS_BUILD_NUMBER: ${{ github.run_number }}
   DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
   DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  GITHUB_TOKEN: ${{ github.token }}
 
 jobs:
   build:
@@ -43,7 +44,37 @@ jobs:
         id: deploy-docker
         run: make deploy
 
-      - uses: actions/upload-artifact@v3
+      - name: upload server linux amd64 artifact
+        uses: softprops/action-gh-release@v1
         with:
-          name: node
-          path: /home/runner/smart-home-node.tar.gz
+          files: /home/runner/node-linux-amd64
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: upload server linux arm 7 artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: /home/runner/node-linux-arm-7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: upload server linux arm 6 artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: /home/runner/node-linux-arm-6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: upload server linux arm 5 artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: /home/runner/node-linux-arm-5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: upload common artifact
+        uses: softprops/action-gh-release@v1
+        with:
+          files: /home/runner/node-common.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

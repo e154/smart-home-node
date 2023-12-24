@@ -2,12 +2,13 @@
 .DEFAULT_GOAL := build
 build: get_deps build_server
 tests: lint test
-all: build build_structure build_archive docker_image
+all: build build_structure build_common_structure build_archive docker_image
 deploy: docker_image_upload
 
 EXEC=node
 ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TMP_DIR = ${ROOT}/tmp/${EXEC}
+COMMON_DIR = ${ROOT}/tmp/common
 ARCHIVE=smart-home-${EXEC}.tar.gz
 
 PROJECT ?=github.com/e154/smart-home
@@ -90,9 +91,20 @@ build_structure:
 	#cp ${ROOT}/${EXEC}-darwin-10.6-amd64 ${TMP_DIR}
 	cp ${ROOT}/bin/node ${TMP_DIR}
 
+build_common_structure:
+	@echo MARK: create app structure
+	mkdir -p ${COMMON_DIR}
+	cd ${COMMON_DIR}
+	cp -r ${ROOT}/conf ${COMMON_DIR}
+	cp ${ROOT}/LICENSE ${COMMON_DIR}
+	cp ${ROOT}/README* ${COMMON_DIR}
+	cp ${ROOT}/contributors.txt ${COMMON_DIR}
+	cp ${ROOT}/bin/docker/Dockerfile ${COMMON_DIR}
+	cp ${ROOT}/bin/node ${COMMON_DIR}
+
 build_archive:
 	@echo MARK: build app archive
-	cd ${TMP_DIR} && ls -l && tar -zcf ${HOME}/${ARCHIVE} .
+	cd ${COMMON_DIR} && ls -l && tar -zcf ${HOME}/${ARCHIVE} .
 
 docker_image:
 	cd ${TMP_DIR} && ls -ll && docker build -f ${ROOT}/bin/docker/Dockerfile -t ${DOCKER_ACCOUNT}/${IMAGE} .
