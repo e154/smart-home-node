@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/astaxie/beego v1.12.1
 	github.com/eclipse/paho.mqtt.golang v1.2.0
+	github.com/google/uuid v1.5.0
 	github.com/paulbellamy/ratecounter v0.2.0
 	github.com/spf13/cobra v1.5.0
 	github.com/tarm/serial v0.0.0-20180830185346-98f6abe2eb07
@@ -13,7 +14,6 @@ require (
 )
 
 require (
-	github.com/google/uuid v1.5.0 // indirect
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect

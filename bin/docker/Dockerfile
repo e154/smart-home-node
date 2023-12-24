@@ -1,4 +1,4 @@
-FROM postgres:15 as postgres
+FROM debian:12-slim
 MAINTAINER Filippov Alex <support@e154.ru>
 
 ENV APP_DIR /opt/smart-home-node
