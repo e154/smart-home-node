@@ -19,13 +19,11 @@
 package models
 
 import (
-	"github.com/e154/smart-home-node/common"
 	"time"
 )
 
 type Log struct {
-	Id        int64           `json:"id"`
-	Body      string          `json:"body"`
-	Level     common.LogLevel `json:"level"`
-	CreatedAt time.Time       `json:"created_at"`
+	Id        int64     `json:"id"`
+	Body      string    `json:"body"`
+	CreatedAt time.Time `json:"created_at"`
 }

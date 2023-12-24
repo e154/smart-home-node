@@ -19,9 +19,9 @@
 package command
 
 import (
-	"strings"
-	"os/exec"
 	"bytes"
+	"os/exec"
+	"strings"
 )
 
 // IC.Execute "sh", "-c", "echo stdout; echo 1>&2 stderr"

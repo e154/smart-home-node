@@ -16,53 +16,35 @@
 // License along with this library.  If not, see
 // <https://www.gnu.org/licenses/>.
 
-package graceful_service
+package container
 
 import (
-	"sync"
+	"go.uber.org/fx"
+
+	"github.com/e154/smart-home-node/system/client"
+	"github.com/e154/smart-home-node/system/config"
+	"github.com/e154/smart-home-node/system/logging"
+	"github.com/e154/smart-home-node/system/mqtt"
+	"github.com/e154/smart-home-node/system/serial"
+	"github.com/e154/smart-home-node/system/tcpproxy"
 )
 
-type IGracefulClient interface {
-	Shutdown()
-}
+// BuildContainer ...
+func BuildContainer(opt fx.Option) (app *fx.App) {
 
-type GracefulServicePool struct {
-	cfg     *GracefulServiceConfig
-	m       sync.Mutex
-	clients map[int]IGracefulClient
-}
+	app = fx.New(
+		fx.Provide(
+			logging.NewLogger,
+			config.ReadConfig,
+			mqtt.NewMqtt,
+			mqtt.NewMqttConfig,
+			client.NewClient,
+			serial.NewSerialService,
+			tcpproxy.NewTcpProxy,
+		),
+		fx.Logger(NewPrinter()),
+		opt,
+	)
 
-func NewGracefulServicePool(cfg *GracefulServiceConfig) *GracefulServicePool {
-	return &GracefulServicePool{
-		cfg:     cfg,
-		clients: make(map[int]IGracefulClient),
-	}
-}
-
-func (h *GracefulServicePool) subscribe(client IGracefulClient) (id int) {
-	h.m.Lock()
-	id = len(h.clients)
-	h.clients[id] = client
-	h.m.Unlock()
 	return
-}
-
-func (h *GracefulServicePool) unsubscribe(id int) {
-	h.m.Lock()
-	if _, ok := h.clients[id]; ok {
-		delete(h.clients, id)
-	}
-	h.m.Unlock()
-}
-
-func (h *GracefulServicePool) shutdown() {
-	h.m.Lock()
-	i := len(h.clients)
-	for ;i>=0;i-- {
-		client := h.clients[i]
-		if client != nil {
-			client.Shutdown()
-		}
-	}
-	h.m.Unlock()
 }

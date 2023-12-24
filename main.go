@@ -1,6 +1,6 @@
 // This file is part of the Smart Home
 // Program complex distribution https://github.com/e154/smart-home
-// Copyright (C) 2016-2020, Filippov Alex
+// Copyright (C) 2016-2021, Filippov Alex
 //
 // This library is free software: you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -20,54 +20,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/e154/smart-home-node/common"
-	"github.com/e154/smart-home-node/system/client"
-	"github.com/e154/smart-home-node/system/graceful_service"
-	"github.com/e154/smart-home-node/system/logging"
-	"github.com/e154/smart-home-node/system/tcpproxy"
-	"github.com/e154/smart-home-node/version"
-	"os"
-)
 
-var (
-	log = common.MustGetLogger("main")
+	"github.com/e154/smart-home-node/cmd/commands"
 )
 
 func main() {
-
-	args := os.Args[1:]
-	for _, arg := range args {
-		switch arg {
-		case "-v", "--version":
-			fmt.Printf(version.ShortVersionBanner, version.GetHumanVersion())
-			return
-		default:
-			fmt.Printf(version.VerboseVersionBanner, "v2", os.Args[0])
-			return
-		}
-	}
-
-	start()
-}
-
-func start() {
-
-	fmt.Printf(version.ShortVersionBanner, "")
-
-	container := BuildContainer()
-	err := container.Invoke(func(
-		graceful *graceful_service.GracefulService,
-		client *client.Client,
-		server *tcpproxy.TcpProxy,
-		logger *logging.Logging) {
-
-		client.Connect()
-		go server.Start()
-
-		graceful.Wait()
-	})
-
-	if err != nil {
-		panic(err.Error())
+	if err := commands.Server.Execute(); err != nil {
+		fmt.Println(err.Error())
 	}
 }

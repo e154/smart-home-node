@@ -23,12 +23,12 @@ import (
 )
 
 var (
-	VersionString = "?"
-	RevisionString = "?"
+	VersionString     = "?"
+	RevisionString    = "?"
 	RevisionURLString = "?"
-	GeneratedString = "?"
-	DevelopersString = "?"
-	BuildNumString = "?"
+	GeneratedString   = "?"
+	DevelopersString  = "?"
+	BuildNumString    = "?"
 	DockerImageString = "?"
 )
 

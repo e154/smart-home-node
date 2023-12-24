@@ -16,8 +16,8 @@
 // License along with this library.  If not, see
 // <https://www.gnu.org/licenses/>.
 
-// +build darwin
-// +build 386
+//go:build darwin && 386
+// +build darwin,386
 
 package serial
 

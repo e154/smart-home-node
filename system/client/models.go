@@ -23,6 +23,7 @@ import "time"
 type StateSnapshot struct {
 	Rps       int64     `json:"rps"`
 	Min       int64     `json:"min"`
+	Latency   int64     `json:"latency"`
 	Max       int64     `json:"max"`
 	StartedAt time.Time `json:"started_at"`
 }

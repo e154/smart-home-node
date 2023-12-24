@@ -19,10 +19,11 @@
 package debug
 
 import (
-	"runtime"
-	"fmt"
-	"strings"
 	"encoding/json"
+	"fmt"
+	"runtime"
+	"strings"
+
 	"github.com/e154/smart-home-node/system/validation"
 )
 

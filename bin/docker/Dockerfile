@@ -1,18 +1,14 @@
-FROM debian
-MAINTAINER Filippov Alex <af@suretly.com>
+FROM debian:12-slim
+MAINTAINER Filippov Alex <support@e154.ru>
 
 ENV APP_DIR /opt/smart-home-node
-RUN sed 's/main$/main universe/' -i /etc/apt/sources.list \
-    && apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install ca-certificates -y \
-    && mkdir -p $APP_DIR
-
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates iputils-ping
+RUN update-ca-certificates
 WORKDIR $APP_DIR
-
 ADD . $APP_DIR
-
 ENTRYPOINT (cd $APP_DIR && ./node)
+USER nobody
 
 ENV NAME="node1"
 ENV TOPIC="node1"

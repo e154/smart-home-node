@@ -87,6 +87,9 @@ main() {
     --build)
     __build
     ;;
+    --host-build)
+    __host_build
+    ;;
     --docker_deploy)
     __docker_deploy
     ;;
@@ -127,12 +130,20 @@ __build() {
       BRANCH="master"
     fi
 
+#todo need fix xgo build
+#    echo ""
+#    echo "build command:"
+#    echo "xgo --out=${EXEC} --branch=${BRANCH} --targets=linux/*,windows/*,darwin/* --ldflags='${GOBUILD_LDFLAGS}' ${PACKAGE}"
+#    echo ""
+#
+#    xgo --out=${EXEC} --branch=${BRANCH} --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
+
     echo ""
     echo "build command:"
-    echo "xgo --out=${EXEC} --branch=${BRANCH} --targets=linux/*,windows/*,darwin/* --ldflags='${GOBUILD_LDFLAGS}' ${PACKAGE}"
+    echo "cd ${ROOT} && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags="${GOBUILD_LDFLAGS}" -o ${EXEC}"
     echo ""
 
-    xgo --out=${EXEC} --branch=${BRANCH} --targets=linux/*,windows/*,darwin/* --ldflags="${GOBUILD_LDFLAGS}" ${PACKAGE}
+    cd ${ROOT} && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags="${GOBUILD_LDFLAGS}" -o ${EXEC}
 
     cp -r ${ROOT}/conf ${TMP_DIR}
     cp -r ${ROOT}/data ${TMP_DIR}
@@ -145,6 +156,18 @@ __build() {
     # gzip
     cd ${TMP_DIR}
     tar -zcf ${HOME}/${ARCHIVE} .
+}
+
+__host_build() {
+
+    OUTPUT="node-linux-amd64"
+
+    echo ""
+    echo "build command:"
+    echo "CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags '${GOBUILD_LDFLAGS}' -o ${OUTPUT}"
+    echo ""
+
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -ldflags "${GOBUILD_LDFLAGS}" -o ${OUTPUT}
 }
 
 __docker_deploy() {

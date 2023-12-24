@@ -20,13 +20,14 @@ package tcpproxy
 
 import (
 	"crypto/tls"
-	"github.com/e154/smart-home-node/common"
 	"io"
 	"net"
+
+	"github.com/e154/smart-home-node/common/logger"
 )
 
 var (
-	log = common.MustGetLogger("tcpproxy")
+	log = logger.MustGetLogger("tcpproxy")
 )
 
 // Proxy - Manages a Proxy connection, piping data between local and remote.

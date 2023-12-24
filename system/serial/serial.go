@@ -19,25 +19,26 @@
 package serial
 
 import (
-	"github.com/e154/serial"
 	"time"
+
+	"github.com/tarm/serial"
 )
 
 type Serial struct {
-	Dev				string
-	Baud			int
-	ReadTimeout 	time.Duration
-	StopBits 		int
-	config			*serial.Config
-	Port			*serial.Port
+	Dev         string
+	Baud        int
+	ReadTimeout time.Duration
+	StopBits    int
+	config      *serial.Config
+	Port        *serial.Port
 }
 
 func (s *Serial) Open() (*Serial, error) {
 
 	s.config = &serial.Config{
-		Name: s.Dev,
-		Baud: s.Baud,
-		StopBits: serial.StopBits(s.StopBits),
+		Name:        s.Dev,
+		Baud:        s.Baud,
+		StopBits:    serial.StopBits(s.StopBits),
 		ReadTimeout: s.ReadTimeout,
 	}
 

@@ -19,10 +19,11 @@
 package serial
 
 import (
-	"time"
-	"github.com/e154/smart-home-node/system/config"
 	"io/ioutil"
 	"strings"
+	"time"
+
+	"github.com/e154/smart-home-node/system/config"
 )
 
 type SerialService struct {
@@ -42,7 +43,7 @@ func NewSerialService(cfg *config.AppConfig) *SerialService {
 }
 
 func (s *SerialService) run() {
-	for ; ; {
+	for {
 		time.Sleep(1 * time.Second)
 		s.deviceList = s.DeviceList()
 	}
