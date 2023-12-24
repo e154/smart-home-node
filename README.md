@@ -2,11 +2,7 @@ Smart home node
 ---------------
 
 [Project site](https://e154.github.io/smart-home/) |
-[Configurator](https://github.com/e154/smart-home-configurator/) |
-[Server](https://github.com/e154/smart-home/) |
-[Development Tools](https://github.com/e154/smart-home-tools/) |
-[Smart home Socket](https://github.com/e154/smart-home-socket/) |
-[Modbus device controller](https://github.com/e154/smart-home-modbus-ctrl-v1/)
+[Server](https://github.com/e154/smart-home/)
 
 ![status](https://img.shields.io/badge/status-beta-yellow.svg)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
