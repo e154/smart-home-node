@@ -26,9 +26,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/e154/smart-home-node/system/config"
-	"github.com/e154/smart-home-node/system/uuid"
+	"github.com/google/uuid"
 	"go.uber.org/fx"
+
+	"github.com/e154/smart-home-node/system/config"
 )
 
 type TcpProxy struct {
@@ -137,7 +138,7 @@ func (p *TcpProxy) runServer() {
 }
 
 func (p *TcpProxy) addClient(conn *net.TCPConn, laddr, raddr *net.TCPAddr) {
-	id := uuid.NewV4().String()
+	id := uuid.NewString()
 
 	var pr *Proxy
 	pr = New(conn, laddr, raddr, id)
