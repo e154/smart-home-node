@@ -9,7 +9,7 @@ EXEC=node
 ROOT := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 TMP_DIR = ${ROOT}/tmp/${EXEC}
 COMMON_DIR = ${ROOT}/tmp/common
-ARCHIVE=smart-home-${EXEC}.tar.gz
+ARCHIVE=${EXEC}-common.tar.gz
 
 PROJECT ?=github.com/e154/smart-home
 TRAVIS_BUILD_NUMBER ?= local
