@@ -104,7 +104,7 @@ build_common_structure:
 
 build_archive:
 	@echo MARK: build app archive
-	cd ${COMMON_DIR} && ls -l && tar -zcf ${HOME}/${ARCHIVE} .
+	cd ${COMMON_DIR} && ls -l && tar -zcf ${ROOT}/${ARCHIVE} .
 
 docker_image:
 	cd ${TMP_DIR} && ls -ll && docker build -f ${ROOT}/bin/docker/Dockerfile -t ${DOCKER_ACCOUNT}/${IMAGE} .
@@ -125,4 +125,4 @@ clean:
 	rm -f ${ROOT}/${EXEC}-linux-arm-6
 	rm -f ${ROOT}/${EXEC}-linux-arm-5
 	#rm -f ${ROOT}/${EXEC}-darwin-10.6-amd64
-	rm -f ${HOME}/${ARCHIVE}
+	rm -f ${ROOT}/${ARCHIVE}
